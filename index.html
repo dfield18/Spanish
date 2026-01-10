@@ -3,56 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spanish Vocabulary Memorizer</title>
+    <title>Spanish Vocab - Learn with style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="background-decoration">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+    </div>
+    
     <div class="container">
-        <header>
-            <h1>🇪🇸 Spanish Vocabulary Memorizer</h1>
-            <nav>
-                <button id="homeBtn" class="nav-btn active">Home</button>
-                <button id="quizBtn" class="nav-btn">Quiz</button>
+        <header class="main-header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 19.5C4 18.837 4.263 18.201 4.732 17.732L12.707 9.757C13.098 9.366 13.098 8.733 12.707 8.343L11.293 6.929C10.902 6.538 10.269 6.538 9.879 6.929L1.904 14.904C1.435 15.373 1.172 16.009 1.172 16.672V19.5C1.172 20.328 1.844 21 2.672 21H5.5C6.163 21 6.799 20.737 7.268 20.268L15.243 12.293C15.634 11.902 16.267 11.902 16.657 12.293L18.071 13.707C18.462 14.098 18.462 14.731 18.071 15.121L10.096 23.096C9.627 23.565 8.991 23.828 8.328 23.828H5.5C4.672 23.828 4 23.156 4 22.328V19.5Z" fill="currentColor"/>
+                        <path d="M22.5 2.5C22.5 1.672 21.828 1 21 1H18.172C17.509 1 16.873 1.263 16.404 1.732L8.429 9.707C8.038 10.098 8.038 10.731 8.429 11.121L9.843 12.535C10.234 12.926 10.867 12.926 11.257 12.535L19.232 4.56C19.701 4.091 20.337 3.828 21 3.828H22.5V2.5Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="brand">
+                    <h1 class="brand-title">
+                        <span class="brand-text-primary">Spanish</span>
+                        <span class="brand-text-accent">Vocab</span>
+                    </h1>
+                    <p class="brand-tagline">
+                        <span>Learn with style</span>
+                        <svg class="sparkle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/>
+                        </svg>
+                    </p>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <button id="homeBtn" class="nav-tab active">Dashboard</button>
+                <button id="quizBtn" class="nav-tab">Quiz Mode</button>
             </nav>
         </header>
 
         <!-- Homepage View -->
         <div id="homeView" class="view active">
-            <div class="controls-bar">
-                <div class="control-group">
-                    <label>
-                        <input type="checkbox" id="reviewOnlyToggle">
-                        Show review words only
-                    </label>
+            <div class="settings-card">
+                <div class="settings-row">
+                    <label class="settings-label">Native Language</label>
+                    <div class="segmented-control">
+                        <button class="segmented-option" data-lang="spanish">
+                            <span class="flag-icon">🇪🇸</span>
+                            <span>Spanish</span>
+                        </button>
+                        <button class="segmented-option active" data-lang="english">
+                            <span class="flag-icon">🇬🇧</span>
+                            <span>English</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label>
-                        Display language:
-                        <select id="displayLanguageToggle">
-                            <option value="spanish">Spanish</option>
-                            <option value="english">English</option>
-                        </select>
-                    </label>
+                <div class="settings-row">
+                    <label class="settings-label">Show Review Only</label>
+                    <div class="review-toggle-wrapper">
+                        <span class="review-badge" id="reviewBadge">2 due</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="reviewOnlyToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            <div class="add-word-section">
-                <h2>Add New Word</h2>
-                <div class="add-word-form">
+            <div class="quick-add-section">
+                <div class="quick-add-container">
                     <input 
                         type="text" 
-                        id="newWordInput" 
-                        placeholder="Enter one or more words (separated by spaces or commas)..."
+                        id="quickAddInput" 
+                        class="quick-add-input"
+                        placeholder="Type a word in English or Spanish..."
                         autocomplete="off"
                     >
-                    <button id="addWordBtn">Add Word</button>
+                    <button id="quickAddBtn" class="quick-add-btn">
+                        <svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
                 </div>
-                <div id="addWordStatus" class="status-message"></div>
+                <div id="quickAddStatus" class="status-message"></div>
             </div>
 
             <div class="vocabulary-section">
-                <h2>Vocabulary Words</h2>
-                <div id="vocabularyGrid" class="vocabulary-grid">
+                <div class="vocabulary-header">
+                    <h2 class="vocabulary-title">Your Vocabulary <span class="vocab-count" id="vocabCount">(8)</span></h2>
+                    <button id="addWordBtn" class="add-word-btn">
+                        <svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Add Word
+                    </button>
+                </div>
+                <div id="vocabularyList" class="vocabulary-list">
                     <!-- Vocabulary cards will be inserted here -->
                 </div>
             </div>
@@ -93,16 +140,16 @@
             <div id="quizContent" class="quiz-content">
                 <div id="quizCard" class="quiz-card">
                     <div id="quizWord" class="quiz-word"></div>
-                    <div id="quizTranslation" class="quiz-translation hidden"></div>
-                    <div id="quizExampleSentences" class="quiz-examples hidden"></div>
-                    <div id="quizMnemonics" class="quiz-mnemonics hidden"></div>
                     <div class="quiz-actions">
                         <button id="revealBtn" class="reveal-btn">Reveal Translation</button>
                         <button id="hintBtn" class="hint-btn">Give Mnemonics Hint</button>
-                        <div id="quizHint" class="quiz-hint hidden"></div>
+                        <button id="examplesBtn" class="examples-btn">Example Sentences</button>
                         <button id="removeFromReviewBtn" class="remove-btn hidden">Remove from Review</button>
                         <button id="nextQuizBtn" class="next-btn hidden">Next Word</button>
                     </div>
+                    <div id="quizTranslation" class="quiz-translation-container hidden"></div>
+                    <div id="quizHint" class="quiz-hint-container hidden"></div>
+                    <div id="quizExampleSentences" class="quiz-examples hidden"></div>
                 </div>
                 <div id="quizEmpty" class="quiz-empty hidden">
                     <p>No words marked for review. Add some words and mark them for review to start quizzing!</p>
@@ -111,6 +158,49 @@
         </div>
     </div>
 
+    <!-- Add Word Modal -->
+    <div id="addWordModal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="closeModalBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h2 class="modal-title">Add New Word</h2>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label for="spanishWordInput" class="form-label">Spanish Word</label>
+                    <input 
+                        type="text" 
+                        id="spanishWordInput" 
+                        class="form-input"
+                        placeholder="Enter Spanish word..."
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="englishWordInput" class="form-label">English Translation</label>
+                    <input 
+                        type="text" 
+                        id="englishWordInput" 
+                        class="form-input"
+                        placeholder="Enter English translation..."
+                        autocomplete="off"
+                    >
+                </div>
+                <div id="addWordStatus" class="status-message"></div>
+                <button id="submitWordBtn" class="submit-btn">
+                    <svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Add Word
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

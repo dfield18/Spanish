@@ -13,13 +13,18 @@ A web application for memorizing and reviewing Spanish vocabulary with AI-powere
 
 ## Setup
 
+### Local Development
+
 1. **Set OpenAI API Key**
 
    You need to provide your OpenAI API key. You can do this in two ways:
 
-   **Option 1: Environment Variable (for local development)**
-   ```bash
-   export OPENAI_API_KEY="your-api-key-here"
+   **Option 1: Edit CONFIG in app.js**
+   Open `app.js` and add your API key to the `CONFIG` object:
+   ```javascript
+   const CONFIG = {
+       OPENAI_API_KEY: 'sk-your-api-key-here'
+   };
    ```
 
    **Option 2: Browser Console (for testing)**
@@ -27,6 +32,9 @@ A web application for memorizing and reviewing Spanish vocabulary with AI-powere
    ```javascript
    window.OPENAI_API_KEY = "your-api-key-here";
    ```
+
+   **Option 3: Local Storage (via Settings UI)**
+   Use the settings section in the application UI to save your API key.
 
 2. **Open the Application**
 
@@ -41,6 +49,41 @@ A web application for memorizing and reviewing Spanish vocabulary with AI-powere
 
    # Then navigate to http://localhost:8000
    ```
+
+### Vercel Deployment
+
+1. **Deploy to Vercel**
+
+   ```bash
+   # Install Vercel CLI (if not already installed)
+   npm i -g vercel
+
+   # Deploy
+   vercel
+   ```
+
+2. **Set Environment Variable**
+
+   After deployment, set the `OPENAI_API_KEY` environment variable in Vercel:
+
+   - Go to your project dashboard on [vercel.com](https://vercel.com)
+   - Navigate to **Settings** → **Environment Variables**
+   - Add a new variable:
+     - **Name**: `OPENAI_API_KEY`
+     - **Value**: Your OpenAI API key (e.g., `sk-...`)
+     - **Environment**: Production, Preview, Development (select all)
+   - Click **Save**
+
+3. **Redeploy**
+
+   After setting the environment variable, redeploy your application:
+   ```bash
+   vercel --prod
+   ```
+
+   Or trigger a redeploy from the Vercel dashboard.
+
+**Note**: When deployed on Vercel, the application automatically uses a serverless function proxy to keep your API key secure server-side. The API key is never exposed to the client-side code.
 
 ## Usage
 
