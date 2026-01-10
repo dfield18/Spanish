@@ -731,6 +731,7 @@ const UI = {
             this.showExampleSentences();
         });
         document.getElementById('removeFromReviewBtn').addEventListener('click', () => this.removeFromReview());
+        document.getElementById('deleteWordBtn').addEventListener('click', () => this.deleteWordFromQuiz());
         document.getElementById('nextQuizBtn').addEventListener('click', () => this.nextQuizWord());
     },
 
@@ -1528,7 +1529,7 @@ const UI = {
             // Always show reveal and hint buttons (they toggle expandable sections)
         document.getElementById('revealBtn').classList.remove('hidden');
         document.getElementById('hintBtn').classList.remove('hidden');
-        document.getElementById('removeFromReviewBtn').classList.add('hidden');
+        // Show icon buttons (remove from review and delete) - they're always visible
         // Show Next Word button below the quiz card (outside the question box)
         document.getElementById('nextQuizBtn').classList.remove('hidden');
         
@@ -1762,6 +1763,32 @@ const UI = {
         }
         
         this.renderQuiz();
+    },
+
+    deleteWordFromQuiz() {
+        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+        if (!currentWord) return;
+        
+        const displayWord = AppState.displayLanguage === 'spanish' ? currentWord.spanish : currentWord.english;
+        const confirmed = confirm(`Are you sure you want to delete "${displayWord}"?\n\nThis action cannot be undone.`);
+        
+        if (confirmed) {
+            const words = Storage.deleteWord(currentWord.id);
+            AppState.words = words.map(w => new VocabularyWord(w));
+            AppState.updateQuizWords();
+            
+            // Adjust current index if needed
+            if (AppState.currentQuizIndex >= AppState.quizWords.length) {
+                AppState.currentQuizIndex = Math.max(0, AppState.quizWords.length - 1);
+            }
+            
+            // If no more words, go back to home view
+            if (AppState.quizWords.length === 0) {
+                this.showView('home');
+            } else {
+                this.renderQuiz();
+            }
+        }
     },
 
     nextQuizWord() {

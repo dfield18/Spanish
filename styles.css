@@ -106,8 +106,8 @@ body {
     background: hsl(40, 40%, 98% / 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 1.5rem 0;
-    margin-bottom: 2rem;
+    padding: 1rem 0;
+    margin-bottom: 0.75rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -959,8 +959,8 @@ body {
 }
 
 .quiz-header {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 0.9rem 1.5rem;
     background: var(--card);
     border-radius: 0.75rem;
     box-shadow: var(--shadow-card);
@@ -971,7 +971,7 @@ body {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--foreground);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .quiz-controls {
@@ -992,17 +992,20 @@ body {
 .quiz-content {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    min-height: 400px;
-    gap: 1.5rem;
+    min-height: auto;
+    gap: 1rem;
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .quiz-card {
+    position: relative;
     background: var(--card);
     border: 3px solid var(--terracotta);
     border-radius: 1rem;
-    padding: 2.5rem;
+    padding: 1.5rem 2.5rem 3.5rem 2.5rem;
     max-width: 600px;
     width: 100%;
     text-align: center;
@@ -1014,7 +1017,7 @@ body {
     font-size: 3rem;
     font-weight: 700;
     color: var(--terracotta);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     min-height: 80px;
     display: flex;
     align-items: center;
@@ -1109,19 +1112,23 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    align-items: stretch;
+    align-items: center;
+    margin-bottom: 0;
+    width: 100%;
 }
 
 .quiz-action-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
+    max-width: 400px;
+    align-items: stretch;
 }
 
 .reveal-btn,
 .hint-btn,
 .examples-btn,
-.remove-btn,
 .next-btn {
     padding: 0.875rem 1.75rem;
     border: none;
@@ -1131,6 +1138,8 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    max-width: 400px;
+    width: 100%;
 }
 
 .reveal-btn {
@@ -1171,6 +1180,53 @@ body {
 .remove-btn:hover {
     background: hsl(0, 70%, 45%);
     transform: translateY(-2px);
+}
+
+.quiz-icon-btn {
+    position: absolute;
+    bottom: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sand);
+    border: 2px solid var(--sand-dark);
+    border-radius: 50%;
+    color: var(--foreground);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.quiz-icon-btn:hover {
+    background: var(--sand-dark);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px hsl(20 25% 15% / 0.2);
+}
+
+.quiz-remove-btn {
+    left: 0.5rem;
+    color: hsl(16, 70%, 50%);
+    border-color: hsl(16, 70%, 50%);
+}
+
+.quiz-remove-btn:hover {
+    background: hsl(16, 70%, 50%);
+    color: white;
+    border-color: hsl(16, 70%, 50%);
+}
+
+.quiz-delete-btn {
+    right: 0.5rem;
+    color: hsl(0, 70%, 50%);
+    border-color: hsl(0, 70%, 50%);
+}
+
+.quiz-delete-btn:hover {
+    background: hsl(0, 70%, 50%);
+    color: white;
+    border-color: hsl(0, 70%, 50%);
 }
 
 .next-btn {

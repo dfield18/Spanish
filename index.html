@@ -140,6 +140,16 @@
             <div id="quizContent" class="quiz-content">
                 <div id="quizCard" class="quiz-card">
                     <div id="quizWord" class="quiz-word"></div>
+                    <button id="removeFromReviewBtn" class="quiz-icon-btn quiz-remove-btn" title="Remove from Review">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button id="deleteWordBtn" class="quiz-icon-btn quiz-delete-btn" title="Delete Word">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
                     <div class="quiz-actions">
                         <div class="quiz-action-group">
                             <button id="revealBtn" class="reveal-btn">Reveal Translation</button>
@@ -153,7 +163,6 @@
                             <button id="examplesBtn" class="examples-btn">Example Sentences</button>
                             <div id="quizExampleSentences" class="quiz-examples hidden"></div>
                         </div>
-                        <button id="removeFromReviewBtn" class="remove-btn hidden">Remove from Review</button>
                     </div>
                 </div>
                 <button id="nextQuizBtn" class="next-btn quiz-next-btn hidden">Next Word</button>
