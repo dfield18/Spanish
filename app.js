@@ -1565,6 +1565,9 @@ const UI = {
             `;
             translationContainer.classList.remove('hidden');
             
+            // Scroll quiz card to top of page
+            this.scrollQuizCardToTop();
+            
             // Attach toggle listener for translation
             const translationToggle = document.getElementById(`quiz-translation-toggle-${currentWord.id}`);
             const translationContent = document.getElementById(`quiz-translation-content-${currentWord.id}`);
@@ -1619,6 +1622,9 @@ const UI = {
                     </div>
                 `;
                 hintContainer.classList.remove('hidden');
+                
+                // Scroll quiz card to top of page
+                this.scrollQuizCardToTop();
             } else {
                 // No hints available
                 hintContainer.innerHTML = `
@@ -1633,6 +1639,9 @@ const UI = {
                     </div>
                 `;
                 hintContainer.classList.remove('hidden');
+                
+                // Scroll quiz card to top of page
+                this.scrollQuizCardToTop();
             }
             
             // Attach toggle listener
@@ -1698,6 +1707,9 @@ const UI = {
                 `;
                 exampleSentencesEl.classList.remove('hidden');
                 
+                // Scroll quiz card to top of page
+                this.scrollQuizCardToTop();
+                
                 // Attach toggle listener
                 const examplesToggle = document.getElementById(`quiz-examples-toggle-${currentWord.id}`);
                 const examplesContent = document.getElementById(`quiz-examples-content-${currentWord.id}`);
@@ -1728,6 +1740,9 @@ const UI = {
                     </div>
                 `;
                 exampleSentencesEl.classList.remove('hidden');
+                
+                // Scroll quiz card to top of page
+                this.scrollQuizCardToTop();
                 
                 // Attach toggle listener
                 const examplesToggle = document.getElementById(`quiz-examples-toggle-${currentWord.id}`);
@@ -1805,6 +1820,34 @@ const UI = {
             AppState.words = words.map(w => new VocabularyWord(w));
             AppState.updateQuizWords();
             this.render();
+        }
+    },
+
+    scrollQuizCardToTop() {
+        const quizCard = document.getElementById('quizCard');
+        const quizHeader = document.querySelector('.quiz-header');
+        
+        if (quizCard) {
+            // Get the quiz card's position relative to the document
+            const cardRect = quizCard.getBoundingClientRect();
+            const currentScrollY = window.scrollY || window.pageYOffset;
+            
+            // Calculate scroll position to put quiz card at the very top
+            // If quiz header exists, scroll past it to hide it
+            let targetScrollY = currentScrollY + cardRect.top;
+            
+            if (quizHeader) {
+                // Scroll to position where quiz card is at top, hiding the quiz header
+                const headerRect = quizHeader.getBoundingClientRect();
+                const headerBottom = currentScrollY + headerRect.bottom;
+                targetScrollY = headerBottom;
+            }
+            
+            // Smooth scroll to position quiz card at the very top
+            window.scrollTo({
+                top: targetScrollY,
+                behavior: 'smooth'
+            });
         }
     },
 
