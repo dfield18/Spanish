@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Vocabulary Memorizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇪🇸 Spanish Vocabulary Memorizer</h1>
+            <nav>
+                <button id="homeBtn" class="nav-btn active">Home</button>
+                <button id="quizBtn" class="nav-btn">Quiz</button>
+            </nav>
+        </header>
+
+        <!-- Homepage View -->
+        <div id="homeView" class="view active">
+            <div class="controls-bar">
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="reviewOnlyToggle">
+                        Show review words only
+                    </label>
+                </div>
+                <div class="control-group">
+                    <label>
+                        Display language:
+                        <select id="displayLanguageToggle">
+                            <option value="spanish">Spanish</option>
+                            <option value="english">English</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="add-word-section">
+                <h2>Add New Word</h2>
+                <div class="add-word-form">
+                    <input 
+                        type="text" 
+                        id="newWordInput" 
+                        placeholder="Enter one or more words (separated by spaces or commas)..."
+                        autocomplete="off"
+                    >
+                    <button id="addWordBtn">Add Word</button>
+                </div>
+                <div id="addWordStatus" class="status-message"></div>
+            </div>
+
+            <div class="vocabulary-section">
+                <h2>Vocabulary Words</h2>
+                <div id="vocabularyGrid" class="vocabulary-grid">
+                    <!-- Vocabulary cards will be inserted here -->
+                </div>
+            </div>
+
+            <div class="api-key-section">
+                <div class="api-key-header">
+                    <h3>OpenAI API Key</h3>
+                    <button id="toggleApiKeyBtn" class="toggle-btn">Show</button>
+                </div>
+                <div id="apiKeyInputContainer" class="hidden">
+                    <input 
+                        type="password" 
+                        id="apiKeyInput" 
+                        placeholder="Enter your OpenAI API key..."
+                        autocomplete="off"
+                    >
+                    <button id="saveApiKeyBtn">Save API Key</button>
+                    <p class="api-key-note">Your API key is stored locally and never sent anywhere except OpenAI.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz View -->
+        <div id="quizView" class="view">
+            <div class="quiz-header">
+                <h2>Quiz Mode</h2>
+                <div class="quiz-controls">
+                    <label>
+                        Show word in:
+                        <select id="quizLanguageToggle">
+                            <option value="spanish">Spanish</option>
+                            <option value="english">English</option>
+                        </select>
+                    </label>
+                    <div id="quizStats" class="quiz-stats"></div>
+                </div>
+            </div>
+            <div id="quizContent" class="quiz-content">
+                <div id="quizCard" class="quiz-card">
+                    <div id="quizWord" class="quiz-word"></div>
+                    <div id="quizTranslation" class="quiz-translation hidden"></div>
+                    <div id="quizExampleSentences" class="quiz-examples hidden"></div>
+                    <div id="quizMnemonics" class="quiz-mnemonics hidden"></div>
+                    <div class="quiz-actions">
+                        <button id="revealBtn" class="reveal-btn">Reveal Translation</button>
+                        <button id="hintBtn" class="hint-btn">Give Mnemonics Hint</button>
+                        <div id="quizHint" class="quiz-hint hidden"></div>
+                        <button id="removeFromReviewBtn" class="remove-btn hidden">Remove from Review</button>
+                        <button id="nextQuizBtn" class="next-btn hidden">Next Word</button>
+                    </div>
+                </div>
+                <div id="quizEmpty" class="quiz-empty hidden">
+                    <p>No words marked for review. Add some words and mark them for review to start quizzing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
