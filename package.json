@@ -1,0 +1,9 @@
+{
+  "name": "spanish-vocabulary-mnemonics",
+  "version": "1.0.0",
+  "description": "Spanish vocabulary learning app with AI-powered mnemonics",
+  "engines": {
+    "node": "20.x"
+  }
+}
+
