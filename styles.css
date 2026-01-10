@@ -199,11 +199,16 @@ body {
 
 /* Settings Card */
 .settings-card {
+    position: sticky;
+    top: 88px; /* Header height + margin */
+    z-index: 99;
     background: var(--card);
     border-radius: 1rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
     box-shadow: var(--shadow-card);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .settings-row {
@@ -1105,6 +1110,12 @@ body {
     align-items: stretch;
 }
 
+.quiz-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .reveal-btn,
 .hint-btn,
 .examples-btn,
@@ -1206,6 +1217,10 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
+    }
+
+    .settings-card {
+        top: 120px; /* Adjusted for mobile header height */
     }
 
     .add-word-btn {

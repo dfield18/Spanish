@@ -141,15 +141,21 @@
                 <div id="quizCard" class="quiz-card">
                     <div id="quizWord" class="quiz-word"></div>
                     <div class="quiz-actions">
-                        <button id="revealBtn" class="reveal-btn">Reveal Translation</button>
-                        <button id="hintBtn" class="hint-btn">Give Mnemonics Hint</button>
-                        <button id="examplesBtn" class="examples-btn">Example Sentences</button>
+                        <div class="quiz-action-group">
+                            <button id="revealBtn" class="reveal-btn">Reveal Translation</button>
+                            <div id="quizTranslation" class="quiz-translation-container hidden"></div>
+                        </div>
+                        <div class="quiz-action-group">
+                            <button id="hintBtn" class="hint-btn">Give Mnemonics Hint</button>
+                            <div id="quizHint" class="quiz-hint-container hidden"></div>
+                        </div>
+                        <div class="quiz-action-group">
+                            <button id="examplesBtn" class="examples-btn">Example Sentences</button>
+                            <div id="quizExampleSentences" class="quiz-examples hidden"></div>
+                        </div>
                         <button id="removeFromReviewBtn" class="remove-btn hidden">Remove from Review</button>
                         <button id="nextQuizBtn" class="next-btn hidden">Next Word</button>
                     </div>
-                    <div id="quizTranslation" class="quiz-translation-container hidden"></div>
-                    <div id="quizHint" class="quiz-hint-container hidden"></div>
-                    <div id="quizExampleSentences" class="quiz-examples hidden"></div>
                 </div>
                 <div id="quizEmpty" class="quiz-empty hidden">
                     <p>No words marked for review. Add some words and mark them for review to start quizzing!</p>
