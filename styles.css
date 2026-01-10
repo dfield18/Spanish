@@ -991,9 +991,11 @@ body {
 
 .quiz-content {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 400px;
+    gap: 1.5rem;
 }
 
 .quiz-card {
@@ -1179,6 +1181,12 @@ body {
 .next-btn:hover {
     background: var(--mastery-completed);
     transform: translateY(-2px);
+}
+
+.quiz-next-btn {
+    max-width: 600px;
+    width: 100%;
+    margin-top: 0.5rem;
 }
 
 .quiz-empty {

@@ -8,8 +8,9 @@ const CONFIG = {
 class VocabularyWord {
     constructor(data) {
         this.id = data.id || Date.now().toString();
-        this.spanish = data.spanish || '';
-        this.english = data.english || '';
+        // Convert words to lowercase by default
+        this.spanish = data.spanish ? String(data.spanish).toLowerCase().trim() : '';
+        this.english = data.english ? String(data.english).toLowerCase().trim() : '';
         this.originalLanguage = data.originalLanguage || 'english'; // 'english' or 'spanish'
         this.review = data.review !== undefined ? data.review : true; // Default to review for new words
         this.exampleSentences = data.exampleSentences || [];
@@ -134,7 +135,28 @@ const Storage = {
         }
     },
 
+    // Check if a word already exists (case-insensitive comparison)
+    wordExists(newWord) {
+        const words = this.getWords();
+        const newSpanish = newWord.spanish?.toLowerCase().trim();
+        const newEnglish = newWord.english?.toLowerCase().trim();
+        
+        return words.some(existingWord => {
+            const existingSpanish = existingWord.spanish?.toLowerCase().trim();
+            const existingEnglish = existingWord.english?.toLowerCase().trim();
+            
+            // Check if Spanish matches OR English matches (case-insensitive)
+            return (newSpanish && existingSpanish && newSpanish === existingSpanish) ||
+                   (newEnglish && existingEnglish && newEnglish === existingEnglish);
+        });
+    },
+
     addWord(word) {
+        // Check for duplicates before adding
+        if (this.wordExists(word)) {
+            return null; // Return null to indicate duplicate
+        }
+        
         const words = this.getWords();
         words.push(word);
         this.saveWords(words);
@@ -146,6 +168,13 @@ const Storage = {
         const index = words.findIndex(w => w.id === wordId);
         if (index !== -1) {
             const updatedWord = { ...words[index], ...updates };
+            // Convert spanish and english to lowercase if they're being updated
+            if (updates.spanish !== undefined) {
+                updatedWord.spanish = String(updates.spanish).toLowerCase().trim();
+            }
+            if (updates.english !== undefined) {
+                updatedWord.english = String(updates.english).toLowerCase().trim();
+            }
             words[index] = updatedWord;
             this.saveWords(words);
         }
@@ -741,49 +770,131 @@ const UI = {
         btn.disabled = true;
         btn.innerHTML = '<span>...</span>';
         
-        statusEl.textContent = 'Detecting language and processing word...';
+        // Split input by commas, newlines, or spaces
+        // Filter out empty strings and trim each word
+        const wordsToAdd = inputText
+            .split(/[,\n\s]+/)
+            .map(w => w.trim())
+            .filter(w => w.length > 0);
+
+        if (wordsToAdd.length === 0) {
+            statusEl.textContent = 'Please enter at least one word.';
+            statusEl.className = 'status-message error';
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+            setTimeout(() => {
+                statusEl.textContent = '';
+                statusEl.className = 'status-message';
+            }, 3000);
+            return;
+        }
+
+        statusEl.textContent = `Processing ${wordsToAdd.length} word${wordsToAdd.length > 1 ? 's' : ''}...`;
         statusEl.className = 'status-message info';
 
-        try {
-            // Use OpenAI to detect language and handle typos
-            const wordData = await OpenAI.generateWordData(inputText);
-            
-            const vocabWord = new VocabularyWord({
-                ...wordData,
-                masteryLevel: 'review',
-                review: true,
-                reviewCount: 0,
-                streak: 0,
-                nextReview: new Date()
-            });
+        const addedWords = [];
+        const errors = [];
+        const skipped = [];
 
-            const words = Storage.addWord(vocabWord);
-            AppState.words = words.map(w => new VocabularyWord(w));
+        try {
+            // Process each word sequentially to avoid overwhelming the API
+            for (let i = 0; i < wordsToAdd.length; i++) {
+                const wordText = wordsToAdd[i];
+                statusEl.textContent = `Processing word ${i + 1} of ${wordsToAdd.length}: "${wordText}"...`;
+                
+                try {
+                    // Use OpenAI to detect language and handle typos
+                    const wordData = await OpenAI.generateWordData(wordText);
+                    
+                    const vocabWord = new VocabularyWord({
+                        ...wordData,
+                        masteryLevel: 'review',
+                        review: true,
+                        reviewCount: 0,
+                        streak: 0,
+                        nextReview: new Date()
+                    });
+
+                    // Check for duplicates before adding
+                    if (Storage.wordExists(vocabWord)) {
+                        skipped.push({
+                            spanish: vocabWord.spanish,
+                            english: vocabWord.english,
+                            input: wordText
+                        });
+                        continue;
+                    }
+
+                    const result = Storage.addWord(vocabWord);
+                    if (result) {
+                        addedWords.push(vocabWord);
+                    } else {
+                        skipped.push({
+                            spanish: vocabWord.spanish,
+                            english: vocabWord.english,
+                            input: wordText
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error adding word "${wordText}":`, error);
+                    errors.push({ word: wordText, error: error.message });
+                }
+            }
+
+            // Reload all words from storage
+            AppState.words = Storage.getWords().map(w => new VocabularyWord(w));
             
-            statusEl.textContent = `Added: "${vocabWord.spanish}" / "${vocabWord.english}"`;
-            statusEl.className = 'status-message success';
-            
+            // Update UI
             input.value = '';
             input.focus();
-            
             this.render();
             
-            // Add animation to newly added word
-            const newCard = document.getElementById(`vocab-card-${vocabWord.id}`);
-            if (newCard) {
-                newCard.classList.add('new-word');
-                setTimeout(() => {
-                    newCard.classList.remove('new-word');
-                }, 1000);
+            // Add animation to newly added words
+            addedWords.forEach(vocabWord => {
+                const newCard = document.getElementById(`vocab-card-${vocabWord.id}`);
+                if (newCard) {
+                    newCard.classList.add('new-word');
+                    setTimeout(() => {
+                        newCard.classList.remove('new-word');
+                    }, 1000);
+                }
+            });
+            
+            // Show success/error message
+            let statusMessage = '';
+            if (addedWords.length > 0) {
+                if (addedWords.length === 1) {
+                    statusMessage = `Added: "${addedWords[0].spanish}" / "${addedWords[0].english}"`;
+                } else {
+                    statusMessage = `Successfully added ${addedWords.length} word${addedWords.length > 1 ? 's' : ''}`;
+                }
+                
+                if (skipped.length > 0) {
+                    statusMessage += `, ${skipped.length} duplicate${skipped.length > 1 ? 's' : ''} skipped`;
+                }
+                
+                if (errors.length > 0) {
+                    statusMessage += `, ${errors.length} failed`;
+                }
+                
+                statusEl.className = errors.length > 0 ? 'status-message error' : 'status-message success';
+            } else if (skipped.length > 0 && errors.length === 0) {
+                statusMessage = `All ${skipped.length} word${skipped.length > 1 ? 's were' : ' was'} already in your vocabulary`;
+                statusEl.className = 'status-message info';
+            } else if (errors.length > 0) {
+                statusMessage = `Failed to add ${errors.length} word${errors.length > 1 ? 's' : ''}`;
+                statusEl.className = 'status-message error';
             }
+            
+            statusEl.textContent = statusMessage;
             
             // Clear status message after delay
             setTimeout(() => {
                 statusEl.textContent = '';
                 statusEl.className = 'status-message';
-            }, 3000);
+            }, addedWords.length > 0 ? 3000 : 5000);
         } catch (error) {
-            console.error(`Error adding word:`, error);
+            console.error(`Error processing words:`, error);
             statusEl.textContent = `Error: ${error.message}`;
             statusEl.className = 'status-message error';
             setTimeout(() => {
@@ -836,11 +947,28 @@ const UI = {
                 nextReview: new Date()
             });
 
+            // Check for duplicates before adding
+            if (Storage.wordExists(vocabWord)) {
+                statusEl.textContent = `"${vocabWord.spanish}" / "${vocabWord.english}" is already in your vocabulary`;
+                statusEl.className = 'status-message info';
+                btn.disabled = false;
+                btn.textContent = 'Add Word';
+                return;
+            }
+
             const words = Storage.addWord(vocabWord);
-            AppState.words = words.map(w => new VocabularyWord(w));
-            
-            statusEl.textContent = `Successfully added "${vocabWord.spanish}" / "${vocabWord.english}"!`;
-            statusEl.className = 'status-message success';
+            if (words) {
+                AppState.words = words.map(w => new VocabularyWord(w));
+                
+                statusEl.textContent = `Successfully added "${vocabWord.spanish}" / "${vocabWord.english}"!`;
+                statusEl.className = 'status-message success';
+            } else {
+                statusEl.textContent = `"${vocabWord.spanish}" / "${vocabWord.english}" is already in your vocabulary`;
+                statusEl.className = 'status-message info';
+                btn.disabled = false;
+                btn.textContent = 'Add Word';
+                return;
+            }
             
             spanishInput.value = '';
             englishInput.value = '';
@@ -1397,11 +1525,12 @@ const UI = {
         
         // Mnemonics removed - using hints instead
         
-        // Always show reveal and hint buttons (they toggle expandable sections)
+            // Always show reveal and hint buttons (they toggle expandable sections)
         document.getElementById('revealBtn').classList.remove('hidden');
         document.getElementById('hintBtn').classList.remove('hidden');
         document.getElementById('removeFromReviewBtn').classList.add('hidden');
-        document.getElementById('nextQuizBtn').classList.add('hidden');
+        // Show Next Word button below the quiz card (outside the question box)
+        document.getElementById('nextQuizBtn').classList.remove('hidden');
         
         // Update stats
         const stats = document.getElementById('quizStats');
