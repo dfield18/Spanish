@@ -19,9 +19,11 @@
         <header class="main-header">
             <div class="header-left">
                 <div class="logo">
-                    <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 19.5C4 18.837 4.263 18.201 4.732 17.732L12.707 9.757C13.098 9.366 13.098 8.733 12.707 8.343L11.293 6.929C10.902 6.538 10.269 6.538 9.879 6.929L1.904 14.904C1.435 15.373 1.172 16.009 1.172 16.672V19.5C1.172 20.328 1.844 21 2.672 21H5.5C6.163 21 6.799 20.737 7.268 20.268L15.243 12.293C15.634 11.902 16.267 11.902 16.657 12.293L18.071 13.707C18.462 14.098 18.462 14.731 18.071 15.121L10.096 23.096C9.627 23.565 8.991 23.828 8.328 23.828H5.5C4.672 23.828 4 23.156 4 22.328V19.5Z" fill="currentColor"/>
-                        <path d="M22.5 2.5C22.5 1.672 21.828 1 21 1H18.172C17.509 1 16.873 1.263 16.404 1.732L8.429 9.707C8.038 10.098 8.038 10.731 8.429 11.121L9.843 12.535C10.234 12.926 10.867 12.926 11.257 12.535L19.232 4.56C19.701 4.091 20.337 3.828 21 3.828H22.5V2.5Z" fill="currentColor"/>
+                    <svg class="logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Open book icon -->
+                        <path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="3" x2="12" y2="21" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <div class="brand">
@@ -30,10 +32,10 @@
                         <span class="brand-text-accent">Vocab</span>
                     </h1>
                     <p class="brand-tagline">
-                        <span>Learn with style</span>
                         <svg class="sparkle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/>
                         </svg>
+                        <span>Learn with style</span>
                     </p>
                 </div>
             </div>
@@ -68,6 +70,16 @@
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
+                </div>
+                <div class="settings-row">
+                    <label class="settings-label">View</label>
+                    <select id="viewFilterDropdown" class="view-filter-dropdown">
+                        <option value="all">All Words</option>
+                        <option value="active">Active</option>
+                        <option value="archive">Archive</option>
+                        <option value="checkLater">Check Later</option>
+                        <option value="reviewNow">Review Now</option>
+                    </select>
                 </div>
             </div>
 
@@ -140,9 +152,40 @@
             <div id="quizContent" class="quiz-content">
                 <div id="quizCard" class="quiz-card">
                     <div id="quizWord" class="quiz-word"></div>
+                    <div class="quiz-toggle-group">
+                        <label class="quiz-review-toggle" title="Review">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="quizReviewToggle">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                        <label class="quiz-review-now-toggle" title="Review Now">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="quizReviewNowToggle">
+                                <span class="toggle-slider"></span>
+                            </span>
+                        </label>
+                    </div>
                     <button id="removeFromReviewBtn" class="quiz-icon-btn quiz-remove-btn" title="Remove from Review">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button id="archiveWordBtn" class="quiz-icon-btn quiz-archive-btn" title="Archive Word">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- File box/tray -->
+                            <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Front face line -->
+                            <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <!-- Papers inside -->
+                            <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <button id="checkLaterBtn" class="quiz-icon-btn quiz-check-later-btn" title="Check Later">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                     <button id="deleteWordBtn" class="quiz-icon-btn quiz-delete-btn" title="Delete Word">
@@ -163,9 +206,16 @@
                             <button id="examplesBtn" class="examples-btn">Example Sentences</button>
                             <div id="quizExampleSentences" class="quiz-examples hidden"></div>
                         </div>
+                        <div class="quiz-action-group" id="quizConjugationsGroup" style="display: none;">
+                            <button id="conjugationsBtn" class="conjugations-btn">Conjugations</button>
+                            <div id="quizConjugations" class="quiz-conjugations hidden"></div>
+                        </div>
+                        <div class="quiz-action-group quiz-navigation-group">
+                            <button id="prevQuizBtn" class="prev-btn">Previous Word</button>
+                            <button id="nextQuizBtn" class="next-btn">Next Word</button>
+                        </div>
                     </div>
                 </div>
-                <button id="nextQuizBtn" class="next-btn quiz-next-btn hidden">Next Word</button>
                 <div id="quizEmpty" class="quiz-empty hidden">
                     <p>No words marked for review. Add some words and mark them for review to start quizzing!</p>
                 </div>

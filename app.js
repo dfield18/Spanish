@@ -4,6 +4,13 @@ const CONFIG = {
     OPENAI_API_KEY: '' // Enter your OpenAI API key here, e.g., 'sk-...'
 };
 
+// Status labels
+const STATUS_LABELS = {
+    'review-now': 'Review Now',
+    'check-later': 'Check Later',
+    'archived': 'Archived'
+};
+
 // Data Model
 class VocabularyWord {
     constructor(data) {
@@ -13,6 +20,27 @@ class VocabularyWord {
         this.english = data.english ? String(data.english).toLowerCase().trim() : '';
         this.originalLanguage = data.originalLanguage || 'english'; // 'english' or 'spanish'
         this.review = data.review !== undefined ? data.review : true; // Default to review for new words
+        this.reviewNow = data.reviewNow !== undefined ? data.reviewNow : false; // Review Now status
+        this.archived = data.archived !== undefined ? data.archived : false; // Archive status
+        this.checkLater = data.checkLater !== undefined ? data.checkLater : false; // Check later status
+        
+        // New status system
+        this.isActive = data.isActive !== undefined ? data.isActive : true; // Active toggle
+        // Determine status from existing flags or use provided status
+        if (data.status) {
+            this.status = data.status; // 'review-now' | 'check-later' | 'archived'
+        } else {
+            // Migrate from old flags to new status system
+            if (data.archived) {
+                this.status = 'archived';
+            } else if (data.checkLater) {
+                this.status = 'check-later';
+            } else if (data.reviewNow) {
+                this.status = 'review-now';
+            } else {
+                this.status = 'review-now'; // Default status
+            }
+        }
         this.exampleSentences = data.exampleSentences || [];
         this.partOfSpeech = data.partOfSpeech || '';
         this.conjugations = data.conjugations || null; // null if not a verb, object with tenses if verb
@@ -322,6 +350,7 @@ IMPORTANT:
 - If the word appears to be misspelled, infer the most likely intended word based on context and common spelling errors. Use your best judgment to determine what the user likely meant.
 - If the word is not a verb, set "isVerb" to false and "conjugations" to null.
 - For irregular forms, list the specific person forms (e.g., ["yo", "tú"]) that are irregular.
+- For VERBS: The example sentences MUST use the verb in different tenses and conjugations (not just the infinitive form). Use various tenses like present, preterite, imperfect, future, conditional, and subjunctive. Use different persons (yo, tú, él/ella, nosotros, ellos/ellas) to demonstrate the conjugations. Each sentence should showcase a different conjugated form of the verb. Do NOT use the infinitive form in the sentences - always use conjugated forms.
 - Provide 2-4 example sentences (always in Spanish with English translations on a new line).
 Return ONLY valid JSON, no additional text.`;
 
@@ -417,18 +446,27 @@ Return ONLY valid JSON, no additional text.`;
         }
     },
 
-    async generateExampleSentences(spanishWord, englishWord, partOfSpeech) {
+    async generateExampleSentences(spanishWord, englishWord, partOfSpeech, conjugations = null) {
         // Escape words to prevent issues with special characters
         const escapedSpanish = String(spanishWord).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
         const escapedEnglish = String(englishWord).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
         
-        const prompt = `Generate 2-4 example sentences in Spanish (Mexican Spanish) for the word "${escapedSpanish}" (which means "${escapedEnglish}" in English). The word is a ${partOfSpeech || 'word'}.
+        const isVerb = partOfSpeech === 'verb' || conjugations !== null;
+        let conjugationsInfo = '';
+        
+        if (isVerb && conjugations) {
+            // Format conjugations for the prompt
+            const conjugationsStr = JSON.stringify(conjugations, null, 2);
+            conjugationsInfo = `\n\nThis is a VERB. Here are its conjugations:\n${conjugationsStr}\n\nIMPORTANT: For verbs, the example sentences MUST use the verb in different tenses and conjugations (not just the infinitive form). Use various tenses like present, preterite, imperfect, future, conditional, and subjunctive. Use different persons (yo, tú, él/ella, nosotros, ellos/ellas) to demonstrate the conjugations. Each sentence should showcase a different conjugated form of the verb.`;
+        }
+        
+        const prompt = `Generate 2-4 example sentences in Spanish (Mexican Spanish) for the word "${escapedSpanish}" (which means "${escapedEnglish}" in English). The word is a ${partOfSpeech || 'word'}.${conjugationsInfo}
 
 The example sentences should:
 - Be in Spanish (Mexican Spanish dialect)
 - Demonstrate how to use the Spanish word "${escapedSpanish}" in context
 - Be natural and practical examples
-- Use Mexican Spanish vocabulary and expressions
+- Use Mexican Spanish vocabulary and expressions${isVerb ? '\n- For verbs: Use different tenses and conjugations (present, preterite, imperfect, future, conditional, subjunctive) with different persons (yo, tú, él/ella, nosotros, ellos/ellas). Do NOT use the infinitive form in the sentences - always use conjugated forms.' : ''}
 
 Return a JSON object with this structure:
 {
@@ -513,6 +551,7 @@ const AppState = {
     words: [],
     displayLanguage: 'spanish', // 'spanish' or 'english'
     reviewOnly: false,
+    viewFilter: 'active', // 'all', 'active', or 'archive'
     currentView: 'home', // 'home' or 'quiz'
     currentQuizIndex: 0,
     quizWords: [],
@@ -534,8 +573,10 @@ const AppState = {
         try {
             const savedLang = localStorage.getItem('displayLanguage');
             const savedReviewOnly = localStorage.getItem('reviewOnly');
+            const savedViewFilter = localStorage.getItem('viewFilter');
             if (savedLang) this.displayLanguage = savedLang;
             if (savedReviewOnly !== null) this.reviewOnly = savedReviewOnly === 'true';
+            if (savedViewFilter) this.viewFilter = savedViewFilter;
         } catch (error) {
             console.error('Error loading settings from localStorage:', error);
         }
@@ -550,6 +591,7 @@ const AppState = {
         try {
             localStorage.setItem('displayLanguage', this.displayLanguage);
             localStorage.setItem('reviewOnly', this.reviewOnly.toString());
+            localStorage.setItem('viewFilter', this.viewFilter);
         } catch (error) {
             console.error('Error saving settings to localStorage:', error);
         }
@@ -558,18 +600,47 @@ const AppState = {
     updateQuizWords() {
         this.quizWords = this.words.filter(w => {
             const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
-            // Only include words that are enabled for review AND due for review
-            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview();
+            // Only include words that are enabled for review AND due for review AND status is review-now
+            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status === 'review-now';
         });
     },
 
     getFilteredWords() {
         let filtered = [...this.words];
+        
+        // Filter based on view filter dropdown
+        if (this.viewFilter === 'active') {
+            // Show only active words (isActive = true)
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.isActive !== false; // Default to true if undefined
+            });
+        } else if (this.viewFilter === 'archive') {
+            // Show only archived words
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'archived';
+            });
+        } else if (this.viewFilter === 'checkLater') {
+            // Show only check later words
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'check-later';
+            });
+        } else if (this.viewFilter === 'reviewNow') {
+            // Show only review now words
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'review-now';
+            });
+        }
+        // If viewFilter is 'all', show all words (no filtering)
+        
         if (this.reviewOnly) {
             filtered = filtered.filter(w => {
-                const vocabWord = new VocabularyWord(w);
-                // Show only words that have review enabled
-                return vocabWord.review === true;
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                // Show only words that have review enabled and are not archived
+                return vocabWord.review === true && vocabWord.status !== 'archived';
             });
         }
         return filtered;
@@ -580,13 +651,20 @@ const AppState = {
 const UI = {
     init() {
         this.setupEventListeners();
-        this.render();
+        // Ensure correct initial view state
+        this.showView(AppState.currentView || 'home');
     },
 
     setupEventListeners() {
         // Navigation
-        document.getElementById('homeBtn').addEventListener('click', () => this.showView('home'));
-        document.getElementById('quizBtn').addEventListener('click', () => this.showView('quiz'));
+        document.getElementById('homeBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showView('home');
+        });
+        document.getElementById('quizBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showView('quiz');
+        });
 
         // Segmented control for native language
         document.querySelectorAll('.segmented-option').forEach(btn => {
@@ -606,6 +684,16 @@ const UI = {
             AppState.saveSettings();
             this.render();
         });
+
+        // View filter dropdown
+        const viewFilterDropdown = document.getElementById('viewFilterDropdown');
+        if (viewFilterDropdown) {
+            viewFilterDropdown.addEventListener('change', (e) => {
+                AppState.viewFilter = e.target.value;
+                AppState.saveSettings();
+                this.render();
+            });
+        }
 
         // Modal controls
         document.getElementById('addWordBtn').addEventListener('click', () => {
@@ -730,23 +818,107 @@ const UI = {
             e.stopPropagation();
             this.showExampleSentences();
         });
+        const conjugationsBtn = document.getElementById('conjugationsBtn');
+        if (conjugationsBtn) {
+            conjugationsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.showConjugations();
+            });
+        }
+        const quizReviewToggle = document.getElementById('quizReviewToggle');
+        if (quizReviewToggle) {
+            quizReviewToggle.addEventListener('change', (e) => {
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                if (!currentWord) return;
+                const updates = { review: e.target.checked };
+                // If enabling review, clear archived and checkLater flags
+                if (e.target.checked) {
+                    updates.archived = false;
+                    updates.checkLater = false;
+                }
+                const words = Storage.updateWord(currentWord.id, updates);
+                AppState.words = words.map(w => new VocabularyWord(w));
+                AppState.updateQuizWords();
+                this.renderQuiz();
+            });
+        }
+        
+        const quizReviewNowToggle = document.getElementById('quizReviewNowToggle');
+        if (quizReviewNowToggle) {
+            quizReviewNowToggle.addEventListener('change', (e) => {
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                if (!currentWord) return;
+                const words = Storage.updateWord(currentWord.id, { reviewNow: e.target.checked });
+                AppState.words = words.map(w => new VocabularyWord(w));
+                AppState.updateQuizWords();
+                this.renderQuiz();
+            });
+        }
+        
         document.getElementById('removeFromReviewBtn').addEventListener('click', () => this.removeFromReview());
+        document.getElementById('archiveWordBtn').addEventListener('click', () => this.archiveWordFromQuiz());
+        document.getElementById('checkLaterBtn').addEventListener('click', () => this.checkLaterFromQuiz());
         document.getElementById('deleteWordBtn').addEventListener('click', () => this.deleteWordFromQuiz());
+        const prevQuizBtn = document.getElementById('prevQuizBtn');
+        if (prevQuizBtn) {
+            prevQuizBtn.addEventListener('click', () => this.prevQuizWord());
+        }
         document.getElementById('nextQuizBtn').addEventListener('click', () => this.nextQuizWord());
     },
 
     showView(view) {
         AppState.currentView = view;
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         
+        // Get all elements
+        const homeView = document.getElementById('homeView');
+        const quizView = document.getElementById('quizView');
+        const homeBtn = document.getElementById('homeBtn');
+        const quizBtn = document.getElementById('quizBtn');
+        
+        // Remove active from all views
+        if (homeView) homeView.classList.remove('active');
+        if (quizView) quizView.classList.remove('active');
+        
+        // Force remove active class from ALL nav-tab buttons using multiple methods
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            btn.classList.remove('active');
+            // Also try removing via className manipulation as backup
+            btn.className = btn.className.replace(/\bactive\b/g, '').trim();
+        });
+        
+        // Explicitly ensure both buttons don't have active
+        if (homeBtn) {
+            homeBtn.classList.remove('active');
+            homeBtn.className = homeBtn.className.replace(/\bactive\b/g, '').trim();
+        }
+        if (quizBtn) {
+            quizBtn.classList.remove('active');
+            quizBtn.className = quizBtn.className.replace(/\bactive\b/g, '').trim();
+        }
+        
+        // Then add active to the correct elements
         if (view === 'home') {
-            document.getElementById('homeView').classList.add('active');
-            document.getElementById('homeBtn').classList.add('active');
+            if (homeView) homeView.classList.add('active');
+            if (homeBtn) {
+                homeBtn.classList.add('active');
+            }
+            // Final check - ensure quizBtn is NOT active
+            if (quizBtn) {
+                quizBtn.classList.remove('active');
+                quizBtn.className = quizBtn.className.replace(/\bactive\b/g, '').trim();
+            }
             this.render();
-        } else {
-            document.getElementById('quizView').classList.add('active');
-            document.getElementById('quizBtn').classList.add('active');
+        } else if (view === 'quiz') {
+            if (quizView) quizView.classList.add('active');
+            if (quizBtn) {
+                quizBtn.classList.add('active');
+            }
+            // Final check - ensure homeBtn is NOT active
+            if (homeBtn) {
+                homeBtn.classList.remove('active');
+                homeBtn.className = homeBtn.className.replace(/\bactive\b/g, '').trim();
+            }
             AppState.updateQuizWords();
             this.renderQuiz();
         }
@@ -1095,7 +1267,8 @@ const UI = {
                 const exampleSentences = await OpenAI.generateExampleSentences(
                     word.spanish, 
                     word.english, 
-                    word.partOfSpeech
+                    word.partOfSpeech,
+                    word.conjugations || null
                 );
                 const words = Storage.updateWord(word.id, { exampleSentences });
                 AppState.words = words.map(w => new VocabularyWord(w));
@@ -1166,7 +1339,8 @@ const UI = {
                     const exampleSentences = await OpenAI.generateExampleSentences(
                         word.spanish, 
                         word.english, 
-                        word.partOfSpeech
+                        word.partOfSpeech,
+                        word.conjugations || null
                     );
                     AppState.words = Storage.updateWord(word.id, { exampleSentences });
                     updated++;
@@ -1301,6 +1475,10 @@ const UI = {
 
         // Update toggle states
         document.getElementById('reviewOnlyToggle').checked = AppState.reviewOnly;
+        const viewFilterDropdown = document.getElementById('viewFilterDropdown');
+        if (viewFilterDropdown) {
+            viewFilterDropdown.value = AppState.viewFilter;
+        }
         
         // Update segmented control
         document.querySelectorAll('.segmented-option').forEach(btn => {
@@ -1317,10 +1495,10 @@ const UI = {
         const filteredWords = AppState.getFilteredWords();
         document.getElementById('vocabCount').textContent = `(${filteredWords.length})`;
         
-        // Update review badge count (only words that are enabled for review AND due)
+        // Update review badge count (only words that are enabled for review AND due AND status is review-now)
         const dueWords = AppState.words.filter(w => {
             const vocabWord = new VocabularyWord(w);
-            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview();
+            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status === 'review-now';
         });
         document.getElementById('reviewBadge').textContent = `${dueWords.length} due`;
 
@@ -1343,22 +1521,50 @@ const UI = {
         
         // Attach event listeners
         filteredWords.forEach(word => {
-            // Attach review toggle listener
-            const reviewToggle = document.getElementById(`review-toggle-${word.id}`);
-            if (reviewToggle) {
-                reviewToggle.addEventListener('change', (e) => {
+            // Attach active toggle listener
+            const activeToggle = document.getElementById(`active-toggle-${word.id}`);
+            if (activeToggle) {
+                activeToggle.addEventListener('change', (e) => {
                     e.stopPropagation();
-                    const words = Storage.updateWord(word.id, { review: e.target.checked });
+                    const words = Storage.updateWord(word.id, { isActive: e.target.checked });
                     AppState.words = words.map(w => new VocabularyWord(w));
-                    AppState.updateQuizWords();
-                    // Update the review badge count
-                    const dueWords = AppState.words.filter(w => {
-                        const vocabWord = new VocabularyWord(w);
-                        return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview();
-                    });
-                    document.getElementById('reviewBadge').textContent = `${dueWords.length} due`;
+                    this.render();
                 });
             }
+            
+            // Attach status button listeners
+            const statusButtons = [
+                { id: `status-review-now-${word.id}`, status: 'review-now' },
+                { id: `status-check-later-${word.id}`, status: 'check-later' },
+                { id: `status-archived-${word.id}`, status: 'archived' }
+            ];
+            
+            statusButtons.forEach(({ id, status }) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Update status and sync old flags for backward compatibility
+                        const updates = { 
+                            status: status,
+                            reviewNow: status === 'review-now',
+                            checkLater: status === 'check-later',
+                            archived: status === 'archived',
+                            review: status !== 'archived' // Keep review enabled unless archived
+                        };
+                        const words = Storage.updateWord(word.id, updates);
+                        AppState.words = words.map(w => new VocabularyWord(w));
+                        AppState.updateQuizWords();
+                        // Update the review badge count
+                        const dueWords = AppState.words.filter(w => {
+                            const vocabWord = new VocabularyWord(w);
+                            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status !== 'archived' && vocabWord.status !== 'check-later';
+                        });
+                        document.getElementById('reviewBadge').textContent = `${dueWords.length} due`;
+                        this.render();
+                    });
+                }
+            });
             
             // Attach delete button listener
             const deleteBtn = document.getElementById(`delete-word-${word.id}`);
@@ -1373,35 +1579,70 @@ const UI = {
 
     renderWordCard(word, index) {
         const vocabWord = new VocabularyWord(word); // Ensure it has all methods
-        const displayWord = AppState.displayLanguage === 'spanish' ? vocabWord.spanish : vocabWord.english;
-        const translation = AppState.displayLanguage === 'spanish' ? vocabWord.english : vocabWord.spanish;
+        const spanishWord = vocabWord.spanish;
+        const englishWord = vocabWord.english;
+        const currentStatus = vocabWord.status || 'review-now';
+        const isActive = vocabWord.isActive !== undefined ? vocabWord.isActive : true;
         
-        const masteryLevel = vocabWord.masteryLevel || 'review';
-        const masteryClass = masteryLevel === 'completed' ? 'completed' : 'review';
-        const masteryText = masteryLevel === 'completed' ? 'Mastered' : 'Review';
-        
-        const isReviewEnabled = vocabWord.review !== undefined ? vocabWord.review : true;
+        // Determine which status button should be active
+        const isReviewNow = currentStatus === 'review-now';
+        const isCheckLater = currentStatus === 'check-later';
+        const isArchived = currentStatus === 'archived';
         
         return `
-            <div class="vocab-card" id="vocab-card-${vocabWord.id}" style="animation-delay: ${index * 0.05}s">
-                <label class="vocab-review-toggle vocab-review-toggle-top-right">
-                    <span class="toggle-switch">
-                        <input 
-                            type="checkbox" 
-                            id="review-toggle-${vocabWord.id}" 
-                            ${isReviewEnabled ? 'checked' : ''}
-                        >
-                        <span class="toggle-slider"></span>
-                    </span>
-                </label>
-                <button class="delete-btn vocab-delete-btn-bottom-right" id="delete-word-${vocabWord.id}" title="Delete word">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="vocab-card-content">
-                    <h3 class="vocab-word-primary">${this.escapeHtml(displayWord)}</h3>
-                    <p class="vocab-word-secondary">${this.escapeHtml(translation)}</p>
+            <div class="vocab-card ${!isActive ? 'vocab-card-inactive' : ''}" id="vocab-card-${vocabWord.id}" style="animation-delay: ${index * 0.05}s">
+                <div class="vocab-card-top-row">
+                    <div class="vocab-word-pair">
+                        <span class="language-badge language-badge-spanish">ES</span>
+                        <span class="vocab-word-primary">${this.escapeHtml(spanishWord)}</span>
+                        <span class="word-separator">→</span>
+                        <span class="language-badge language-badge-english">EN</span>
+                        <span class="vocab-word-secondary">${this.escapeHtml(englishWord)}</span>
+                    </div>
+                    <div class="vocab-card-top-actions">
+                        <div class="vocab-active-toggle-wrapper">
+                            <span class="vocab-active-label">Active</span>
+                            <label class="vocab-active-toggle">
+                                <span class="toggle-switch">
+                                    <input 
+                                        type="checkbox" 
+                                        id="active-toggle-${vocabWord.id}" 
+                                        ${isActive ? 'checked' : ''}
+                                    >
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <button class="vocab-delete-btn" id="delete-word-${vocabWord.id}" title="Delete word">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="vocab-card-bottom-row">
+                    <button class="vocab-status-btn vocab-status-btn-review-now ${isReviewNow ? 'vocab-status-btn-active' : ''}" id="status-review-now-${vocabWord.id}" data-status="review-now">
+                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        ${STATUS_LABELS['review-now']}
+                    </button>
+                    <button class="vocab-status-btn vocab-status-btn-check-later ${isCheckLater ? 'vocab-status-btn-active' : ''}" id="status-check-later-${vocabWord.id}" data-status="check-later">
+                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        ${STATUS_LABELS['check-later']}
+                    </button>
+                    <button class="vocab-status-btn vocab-status-btn-archived ${isArchived ? 'vocab-status-btn-active' : ''}" id="status-archived-${vocabWord.id}" data-status="archived">
+                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        ${STATUS_LABELS['archived']}
+                    </button>
                 </div>
             </div>
         `;
@@ -1453,6 +1694,10 @@ const UI = {
         
         if (AppState.quizWords.length === 0) {
             quizCard.classList.add('hidden');
+            const prevBtn = document.getElementById('prevQuizBtn');
+            const nextBtn = document.getElementById('nextQuizBtn');
+            if (prevBtn) prevBtn.classList.add('hidden');
+            if (nextBtn) nextBtn.classList.add('hidden');
             quizEmpty.classList.remove('hidden');
             return;
         }
@@ -1469,6 +1714,17 @@ const UI = {
         const translation = AppState.displayLanguage === 'spanish' ? currentWord.english : currentWord.spanish;
         
         document.getElementById('quizWord').textContent = showWord;
+        
+        // Update quiz toggles
+        const currentVocabWord = new VocabularyWord(currentWord);
+        const quizReviewToggle = document.getElementById('quizReviewToggle');
+        const quizReviewNowToggle = document.getElementById('quizReviewNowToggle');
+        if (quizReviewToggle) {
+            quizReviewToggle.checked = currentVocabWord.review || false;
+        }
+        if (quizReviewNowToggle) {
+            quizReviewNowToggle.checked = currentVocabWord.reviewNow || false;
+        }
         
         // Initialize translation container as expandable (hidden by default)
         const translationContainer = document.getElementById('quizTranslation');
@@ -1488,6 +1744,33 @@ const UI = {
         const exampleSentencesEl = document.getElementById('quizExampleSentences');
         if (exampleSentencesEl) {
             exampleSentencesEl.classList.add('hidden');
+        }
+        
+        // Show/hide conjugations group based on whether word is a verb
+        const conjugationsGroup = document.getElementById('quizConjugationsGroup');
+        const conjugationsBtn = document.getElementById('conjugationsBtn');
+        const conjugationsContainer = document.getElementById('quizConjugations');
+        
+        if (currentVocabWord.conjugations) {
+            // Show conjugations group
+            if (conjugationsGroup) conjugationsGroup.style.display = 'block';
+            
+            // Check if there are irregular forms and style button text accordingly
+            const irregularForms = currentVocabWord.conjugations.irregularForms || [];
+            if (irregularForms.length > 0 && conjugationsBtn) {
+                conjugationsBtn.style.color = 'hsl(0, 70%, 50%)'; // Red color
+            } else if (conjugationsBtn) {
+                conjugationsBtn.style.color = ''; // Reset to default
+            }
+            
+            // Initialize conjugations container
+            if (conjugationsContainer) {
+                conjugationsContainer.innerHTML = '';
+                conjugationsContainer.classList.add('hidden');
+            }
+        } else {
+            // Hide conjugations group if not a verb
+            if (conjugationsGroup) conjugationsGroup.style.display = 'none';
         }
         
         // Render example sentences (expandable)
@@ -1530,12 +1813,43 @@ const UI = {
         document.getElementById('revealBtn').classList.remove('hidden');
         document.getElementById('hintBtn').classList.remove('hidden');
         // Show icon buttons (remove from review and delete) - they're always visible
-        // Show Next Word button below the quiz card (outside the question box)
-        document.getElementById('nextQuizBtn').classList.remove('hidden');
+        // Show navigation buttons in the quiz actions
+        const prevBtn = document.getElementById('prevQuizBtn');
+        const nextBtn = document.getElementById('nextQuizBtn');
+        
+        if (prevBtn) {
+            prevBtn.classList.remove('hidden');
+            prevBtn.style.display = 'block';
+            // Show previous word position
+            if (AppState.quizWords.length > 1) {
+                const prevIndex = AppState.currentQuizIndex === 0 ? AppState.quizWords.length - 1 : AppState.currentQuizIndex - 1;
+                prevBtn.textContent = `Previous Word (${prevIndex + 1} / ${AppState.quizWords.length})`;
+            } else {
+                prevBtn.textContent = 'Previous Word';
+            }
+        }
+        
+        if (nextBtn) {
+            nextBtn.classList.remove('hidden');
+            nextBtn.style.display = 'block';
+            // Ensure button text shows current position
+            if (AppState.quizWords.length > 1) {
+                const nextIndex = (AppState.currentQuizIndex + 1) % AppState.quizWords.length;
+                if (nextIndex === 0 && AppState.currentQuizIndex === AppState.quizWords.length - 1) {
+                    nextBtn.textContent = 'Next Word (Back to Start)';
+                } else {
+                    nextBtn.textContent = `Next Word (${nextIndex + 1} / ${AppState.quizWords.length})`;
+                }
+            } else {
+                nextBtn.textContent = 'Next Word';
+            }
+        }
         
         // Update stats
         const stats = document.getElementById('quizStats');
-        stats.textContent = `${AppState.currentQuizIndex + 1} / ${AppState.quizWords.length}`;
+        if (stats) {
+            stats.textContent = `${AppState.currentQuizIndex + 1} / ${AppState.quizWords.length}`;
+        }
     },
 
     revealTranslation() {
@@ -1618,10 +1932,27 @@ const UI = {
                         </button>
                         <div class="quiz-expandable-content" id="quiz-hint-content-${currentWord.id}">
                             ${hintsHtml}
+                            <button class="regenerate-hints-btn" id="regenerate-hints-${currentWord.id}" title="Regenerate hints using OpenAI">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Regenerate Hints
+                            </button>
                         </div>
                     </div>
                 `;
                 hintContainer.classList.remove('hidden');
+                
+                // Attach regenerate button listener
+                const regenerateBtn = document.getElementById(`regenerate-hints-${currentWord.id}`);
+                if (regenerateBtn) {
+                    regenerateBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.regenerateHints(currentWord.id);
+                    });
+                }
                 
                 // Scroll quiz card to top of page
                 this.scrollQuizCardToTop();
@@ -1635,10 +1966,27 @@ const UI = {
                         </button>
                         <div class="quiz-expandable-content error" id="quiz-hint-content-${currentWord.id}">
                             <p>No hints available for this word.</p>
+                            <button class="regenerate-hints-btn" id="regenerate-hints-${currentWord.id}" title="Generate hints using OpenAI">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Generate Hints
+                            </button>
                         </div>
                     </div>
                 `;
                 hintContainer.classList.remove('hidden');
+                
+                // Attach regenerate button listener
+                const regenerateBtn = document.getElementById(`regenerate-hints-${currentWord.id}`);
+                if (regenerateBtn) {
+                    regenerateBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.regenerateHints(currentWord.id);
+                    });
+                }
                 
                 // Scroll quiz card to top of page
                 this.scrollQuizCardToTop();
@@ -1666,6 +2014,124 @@ const UI = {
         }
     },
 
+    async regenerateHints(wordId) {
+        // Find the word in the words array
+        const wordIndex = AppState.words.findIndex(w => w.id === wordId);
+        if (wordIndex === -1) return;
+        
+        const word = AppState.words[wordIndex];
+        const vocabWord = new VocabularyWord(word);
+        
+        // Get the regenerate button and disable it
+        const regenerateBtn = document.getElementById(`regenerate-hints-${wordId}`);
+        if (regenerateBtn) {
+            regenerateBtn.disabled = true;
+            regenerateBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-dasharray="32" stroke-dashoffset="32">
+                        <animate attributeName="stroke-dasharray" dur="2s" values="0 32;16 16;0 32;0 32" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dashoffset" dur="2s" values="0;-16;-32;-32" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+                Generating...
+            `;
+        }
+        
+        try {
+            // Generate new hints using OpenAI
+            const newHints = await OpenAI.generateMnemonicHint(
+                vocabWord.english,
+                vocabWord.spanish,
+                vocabWord.partOfSpeech
+            );
+            
+            if (newHints && newHints.length > 0) {
+                // Update the word with new hints
+                const updatedWords = Storage.updateWord(wordId, { hint: newHints });
+                AppState.words = updatedWords.map(w => new VocabularyWord(w));
+                
+                // Update the quiz words array if this word is in it
+                AppState.updateQuizWords();
+                
+                // Refresh the hint display - ensure container is visible first
+                const hintContainer = document.getElementById('quizHint');
+                if (hintContainer) {
+                    hintContainer.classList.remove('hidden');
+                }
+                this.giveHint();
+            } else {
+                throw new Error('No hints generated');
+            }
+        } catch (error) {
+            console.error('Error regenerating hints:', error);
+            alert('Failed to regenerate hints. Please check your OpenAI API key and try again.');
+            
+            // Re-enable button
+            if (regenerateBtn) {
+                regenerateBtn.disabled = false;
+                regenerateBtn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Regenerate Hints
+                `;
+            }
+        }
+    },
+
+    showConjugations() {
+        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+        if (!currentWord) return;
+        
+        const vocabWord = new VocabularyWord(currentWord);
+        if (!vocabWord.conjugations) return;
+        
+        const conjugationsEl = document.getElementById('quizConjugations');
+        if (!conjugationsEl) return;
+        
+        // Check if already shown - if so, just toggle visibility
+        const isCurrentlyHidden = conjugationsEl.classList.contains('hidden');
+        
+        if (isCurrentlyHidden) {
+            const conjugations = vocabWord.conjugations;
+            const tenses = ['present', 'preterite', 'imperfect', 'conditional', 'subjunctive', 'future'];
+            const persons = ['yo', 'tú', 'él/ella/usted', 'nosotros', 'vosotros', 'ellos/ellas/ustedes'];
+            const irregularForms = conjugations.irregularForms || [];
+            
+            let conjugationsHtml = '';
+            tenses.forEach(tense => {
+                if (!conjugations[tense]) return;
+                
+                conjugationsHtml += `<div class="tense-group"><h4>${tense.charAt(0).toUpperCase() + tense.slice(1)}</h4><ul>`;
+                persons.forEach(person => {
+                    const form = conjugations[tense][person];
+                    if (form) {
+                        const isIrregular = irregularForms.includes(person);
+                        const className = isIrregular ? 'irregular' : '';
+                        conjugationsHtml += `<li class="${className}"><strong>${person}:</strong> ${this.escapeHtml(form)}</li>`;
+                    }
+                });
+                conjugationsHtml += '</ul></div>';
+            });
+            
+            // Just show the conjugations content directly without nested expandable container
+            conjugationsEl.innerHTML = `
+                <div class="quiz-expandable-content" id="quiz-conjugations-content-${currentWord.id}">
+                    ${conjugationsHtml}
+                </div>
+            `;
+            conjugationsEl.classList.remove('hidden');
+            
+            // Scroll quiz card to top of page
+            this.scrollQuizCardToTop();
+        } else {
+            // Toggle visibility - just hide/show the container
+            conjugationsEl.classList.add('hidden');
+        }
+    },
+
     showExampleSentences() {
         const currentWord = AppState.quizWords[AppState.currentQuizIndex];
         if (!currentWord) return;
@@ -1687,19 +2153,30 @@ const UI = {
                         </button>
                         <div class="quiz-expandable-content" id="quiz-examples-content-${currentWord.id}">
                             <ul>
-                                ${currentWord.exampleSentences.map(s => {
+                                ${currentWord.exampleSentences.map((s, idx) => {
                                     // Handle newline format: split by \n or \\n
                                     const parts = s.split(/\n|\\n/);
+                                    let spanishSentence = '';
+                                    let englishTranslation = '';
+                                    
                                     if (parts.length > 1) {
-                                        return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
+                                        spanishSentence = parts[0];
+                                        englishTranslation = parts[1];
                                     } else {
                                         // Fallback for old format with parentheses on same line
                                         const match = s.match(/^(.+?)\s*\((.+?)\)$/);
                                         if (match) {
-                                            return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
+                                            spanishSentence = match[1];
+                                            englishTranslation = `(${match[2]})`;
+                                        } else {
+                                            spanishSentence = s;
                                         }
-                                        return `<li>${this.escapeHtml(s)}</li>`;
                                     }
+                                    
+                                    // Make words clickable in Spanish sentence
+                                    const clickableSentence = this.makeWordsClickable(spanishSentence, `example-${currentWord.id}-${idx}`);
+                                    
+                                    return `<li>${clickableSentence}<br><span class="translation-line">${this.escapeHtml(englishTranslation)}</span></li>`;
                                 }).join('')}
                             </ul>
                         </div>
@@ -1726,6 +2203,17 @@ const UI = {
                         }
                     });
                 }
+                
+                // Attach click handlers to clickable words
+                setTimeout(() => {
+                    const examplesContent = document.getElementById(`quiz-examples-content-${currentWord.id}`);
+                    if (examplesContent) {
+                        this.attachWordClickHandlersToContainer(examplesContent);
+                    } else {
+                        // Fallback: try with prefix
+                        this.attachWordClickHandlers(`example-${currentWord.id}`);
+                    }
+                }, 200);
             } else {
                 // No example sentences available
                 exampleSentencesEl.innerHTML = `
@@ -1780,6 +2268,48 @@ const UI = {
         this.renderQuiz();
     },
 
+    archiveWordFromQuiz() {
+        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+        if (!currentWord) return;
+        
+        const words = Storage.updateWord(currentWord.id, { archived: true, review: false });
+        AppState.words = words.map(w => new VocabularyWord(w));
+        AppState.updateQuizWords();
+        
+        // Adjust current index if needed
+        if (AppState.currentQuizIndex >= AppState.quizWords.length) {
+            AppState.currentQuizIndex = Math.max(0, AppState.quizWords.length - 1);
+        }
+        
+        // If no more words, go back to home view
+        if (AppState.quizWords.length === 0) {
+            this.showView('home');
+        } else {
+            this.renderQuiz();
+        }
+    },
+
+    checkLaterFromQuiz() {
+        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+        if (!currentWord) return;
+        
+        const words = Storage.updateWord(currentWord.id, { checkLater: true, review: false });
+        AppState.words = words.map(w => new VocabularyWord(w));
+        AppState.updateQuizWords();
+        
+        // Adjust current index if needed
+        if (AppState.currentQuizIndex >= AppState.quizWords.length) {
+            AppState.currentQuizIndex = Math.max(0, AppState.quizWords.length - 1);
+        }
+        
+        // If no more words, go back to home view
+        if (AppState.quizWords.length === 0) {
+            this.showView('home');
+        } else {
+            this.renderQuiz();
+        }
+    },
+
     deleteWordFromQuiz() {
         const currentWord = AppState.quizWords[AppState.currentQuizIndex];
         if (!currentWord) return;
@@ -1806,9 +2336,80 @@ const UI = {
         }
     },
 
+    collapseAllExpandedBoxes() {
+        // Collapse any expanded boxes for the current word
+        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+        if (!currentWord) return;
+        
+        // Collapse translation
+        const translationContent = document.getElementById(`quiz-translation-content-${currentWord.id}`);
+        const translationToggle = document.getElementById(`quiz-translation-toggle-${currentWord.id}`);
+        if (translationContent && translationToggle) {
+            translationContent.classList.add('hidden');
+            translationToggle.setAttribute('aria-expanded', 'false');
+            const translationIcon = translationToggle.querySelector('.toggle-icon');
+            if (translationIcon) translationIcon.textContent = '▼';
+        }
+        
+        // Collapse hints
+        const hintContent = document.getElementById(`quiz-hint-content-${currentWord.id}`);
+        const hintToggle = document.getElementById(`quiz-hint-toggle-${currentWord.id}`);
+        if (hintContent && hintToggle) {
+            hintContent.classList.add('hidden');
+            hintToggle.setAttribute('aria-expanded', 'false');
+            const hintIcon = hintToggle.querySelector('.toggle-icon');
+            if (hintIcon) hintIcon.textContent = '▼';
+        }
+        
+        // Collapse example sentences
+        const examplesContent = document.getElementById(`quiz-examples-content-${currentWord.id}`);
+        const examplesToggle = document.getElementById(`quiz-examples-toggle-${currentWord.id}`);
+        if (examplesContent && examplesToggle) {
+            examplesContent.classList.add('hidden');
+            examplesToggle.setAttribute('aria-expanded', 'false');
+            const examplesIcon = examplesToggle.querySelector('.toggle-icon');
+            if (examplesIcon) examplesIcon.textContent = '▼';
+        }
+        
+        // Collapse conjugations
+        const conjugationsEl = document.getElementById('quizConjugations');
+        if (conjugationsEl) {
+            conjugationsEl.classList.add('hidden');
+        }
+    },
+
+    prevQuizWord() {
+        this.collapseAllExpandedBoxes();
+        
+        // Move to previous word (wrap around to end if at beginning)
+        if (AppState.currentQuizIndex === 0) {
+            AppState.currentQuizIndex = AppState.quizWords.length - 1;
+        } else {
+            AppState.currentQuizIndex--;
+        }
+        this.renderQuiz();
+    },
+
     nextQuizWord() {
+        this.collapseAllExpandedBoxes();
+        
+        // Move to next word
         AppState.currentQuizIndex = (AppState.currentQuizIndex + 1) % AppState.quizWords.length;
         this.renderQuiz();
+    },
+
+    checkLaterFromHome(word) {
+        const words = Storage.updateWord(word.id, { checkLater: true, review: false });
+        AppState.words = words.map(w => new VocabularyWord(w));
+        AppState.updateQuizWords();
+        this.render();
+    },
+
+    archiveWordFromHome(word) {
+        const words = Storage.updateWord(word.id, { archived: true, review: false });
+        AppState.words = words.map(w => new VocabularyWord(w));
+        AppState.updateQuizWords();
+        this.render();
     },
 
     confirmDeleteWord(word) {
@@ -1855,6 +2456,261 @@ const UI = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    makeWordsClickable(sentence, prefix) {
+        // Split sentence into words, preserving spaces and punctuation
+        // Match Spanish words (including accented characters) and punctuation separately
+        const wordPattern = /[\wáéíóúñüÁÉÍÓÚÑÜ]+/g;
+        let result = '';
+        let lastIndex = 0;
+        let wordIndex = 0;
+        let match;
+        
+        while ((match = wordPattern.exec(sentence)) !== null) {
+            // Add text before the word (spaces, punctuation)
+            result += this.escapeHtml(sentence.slice(lastIndex, match.index));
+            
+            // Add the clickable word
+            const word = match[0];
+            const wordId = `${prefix}-word-${wordIndex}`;
+            result += `<span class="clickable-word" data-word="${this.escapeHtml(word)}" id="${wordId}">${this.escapeHtml(word)}</span>`;
+            
+            lastIndex = match.index + word.length;
+            wordIndex++;
+        }
+        
+        // Add remaining text after last word
+        result += this.escapeHtml(sentence.slice(lastIndex));
+        
+        return result;
+    },
+
+    attachWordClickHandlersToContainer(container) {
+        const clickableWords = container.querySelectorAll('.clickable-word');
+        const self = this;
+        
+        if (clickableWords.length === 0) {
+            console.warn('No clickable words found in container');
+            return;
+        }
+        
+        clickableWords.forEach(wordSpan => {
+            // Skip if already has handlers attached
+            if (wordSpan.dataset.handlersAttached === 'true') {
+                return;
+            }
+            wordSpan.dataset.handlersAttached = 'true';
+            
+            let touchStartTime = 0;
+            let touchTimer = null;
+            let clickCount = 0;
+            let clickTimer = null;
+            
+            // Single click handler - detect double click manually
+            wordSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clickCount++;
+                
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 300); // 300ms window for double click
+                } else if (clickCount === 2) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+                    e.preventDefault();
+                    const word = wordSpan.getAttribute('data-word');
+                    if (word) {
+                        self.handleWordClick(word);
+                    }
+                }
+            });
+            
+            // Double-click handler for desktop (backup)
+            wordSpan.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                const word = wordSpan.getAttribute('data-word');
+                if (word) {
+                    self.handleWordClick(word);
+                }
+            });
+            
+            // Touch handlers for mobile
+            wordSpan.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                touchStartTime = Date.now();
+                touchTimer = setTimeout(() => {
+                    const word = wordSpan.getAttribute('data-word');
+                    if (word) {
+                        e.preventDefault();
+                        self.handleWordClick(word);
+                    }
+                }, 500); // 500ms long press
+            }, { passive: false });
+            
+            wordSpan.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+            
+            wordSpan.addEventListener('touchmove', (e) => {
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+        });
+    },
+
+    attachWordClickHandlers(prefix) {
+        // Try multiple selector strategies
+        let clickableWords = document.querySelectorAll(`[id^="${prefix}-word-"].clickable-word`);
+        
+        // Fallback: select by class if ID selector doesn't work
+        if (clickableWords.length === 0) {
+            const container = document.getElementById(`quiz-examples-content-${prefix.replace('example-', '')}`);
+            if (container) {
+                return this.attachWordClickHandlersToContainer(container);
+            }
+        }
+        
+        const self = this; // Preserve context
+        
+        if (clickableWords.length === 0) {
+            console.warn(`No clickable words found with prefix: ${prefix}`);
+            return;
+        }
+        
+        clickableWords.forEach(wordSpan => {
+            // Skip if already has handlers attached
+            if (wordSpan.dataset.handlersAttached === 'true') {
+                return;
+            }
+            wordSpan.dataset.handlersAttached = 'true';
+            
+            let touchStartTime = 0;
+            let touchTimer = null;
+            let clickCount = 0;
+            let clickTimer = null;
+            
+            // Single click handler - detect double click manually
+            wordSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clickCount++;
+                
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 300); // 300ms window for double click
+                } else if (clickCount === 2) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+                    e.preventDefault();
+                    const word = wordSpan.getAttribute('data-word');
+                    if (word) {
+                        self.handleWordClick(word);
+                    }
+                }
+            });
+            
+            // Double-click handler for desktop (backup)
+            wordSpan.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                const word = wordSpan.getAttribute('data-word');
+                if (word) {
+                    self.handleWordClick(word);
+                }
+            });
+            
+            // Touch handlers for mobile
+            wordSpan.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                touchStartTime = Date.now();
+                touchTimer = setTimeout(() => {
+                    const word = wordSpan.getAttribute('data-word');
+                    if (word) {
+                        e.preventDefault();
+                        self.handleWordClick(word);
+                    }
+                }, 500); // 500ms long press
+            }, { passive: false });
+            
+            wordSpan.addEventListener('touchend', (e) => {
+                e.stopPropagation();
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+            
+            wordSpan.addEventListener('touchmove', (e) => {
+                if (touchTimer) {
+                    clearTimeout(touchTimer);
+                    touchTimer = null;
+                }
+            });
+        });
+    },
+
+    async handleWordClick(word) {
+        // Check if word already exists
+        const wordExists = Storage.wordExists(word);
+        if (wordExists) {
+            const confirmed = confirm(`The word "${word}" already exists in your vocabulary. Do you want to add it anyway?`);
+            if (!confirmed) return;
+        } else {
+            const confirmed = confirm(`Add "${word}" as a new word?`);
+            if (!confirmed) return;
+        }
+        
+        // Add the word using the existing quick add functionality
+        try {
+            const wordData = await OpenAI.generateWordData(word);
+            const newWord = new VocabularyWord({
+                spanish: wordData.spanish,
+                english: wordData.english,
+                originalLanguage: wordData.originalLanguage,
+                partOfSpeech: wordData.partOfSpeech,
+                exampleSentences: wordData.exampleSentences || [],
+                conjugations: wordData.conjugations || null,
+                hint: wordData.hint || []
+            });
+            
+            const words = Storage.addWord(newWord);
+            if (words) {
+                AppState.words = words.map(w => new VocabularyWord(w));
+                AppState.updateQuizWords();
+                
+                // Show success message
+                const statusEl = document.getElementById('quickAddStatus');
+                if (statusEl) {
+                    statusEl.textContent = `Added "${word}" successfully!`;
+                    statusEl.className = 'status-message success';
+                    setTimeout(() => {
+                        statusEl.textContent = '';
+                        statusEl.className = 'status-message';
+                    }, 3000);
+                }
+                
+                // Re-render if on homepage
+                if (AppState.currentView === 'home') {
+                    this.render();
+                }
+            }
+        } catch (error) {
+            console.error('Error adding word:', error);
+            alert(`Failed to add "${word}". Please try again.`);
+        }
     }
 };
 

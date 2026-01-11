@@ -16,6 +16,11 @@
     --foreground: hsl(20, 25%, 15%);
     --card: hsl(40, 40%, 98%);
     --muted-foreground: hsl(20, 15%, 45%);
+    --muted: hsl(36, 40%, 80%);
+    
+    /* Status Button Colors */
+    --terracotta-status: hsl(15, 65%, 55%);
+    --amber-500: hsl(43, 96%, 56%);
     
     /* Mastery Level Colors */
     --mastery-review: hsl(16, 70%, 50%);
@@ -121,10 +126,10 @@ body {
 }
 
 .logo {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--terracotta), var(--terracotta-dark));
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    background: var(--terracotta); /* Solid terracotta background */
+    border-radius: 8px; /* Rounded corners */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,10 +173,11 @@ body {
 
 .header-nav {
     display: flex;
-    gap: 0.5rem;
-    background: var(--sand);
+    gap: 0;
+    background: var(--sand-dark); /* Light beige/gray background */
     padding: 0.25rem;
     border-radius: 9999px;
+    box-shadow: var(--shadow-card); /* Subtle shadow */
 }
 
 .nav-tab {
@@ -179,7 +185,7 @@ body {
     font-size: 0.875rem;
     font-weight: 500;
     padding: 0.5rem 1.25rem;
-    background: transparent;
+    background: transparent !important; /* Ensure transparent by default */
     border: none;
     border-radius: 9999px;
     color: var(--muted-foreground);
@@ -187,14 +193,14 @@ body {
     transition: all 0.2s ease;
 }
 
-.nav-tab:hover {
+.nav-tab:hover:not(.active) {
     color: var(--foreground);
 }
 
 .nav-tab.active {
-    background: white;
-    color: var(--foreground);
-    box-shadow: var(--shadow-card);
+    background: white !important; /* White background for active tab - use !important to override */
+    color: var(--foreground) !important; /* Dark text */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
 }
 
 /* Settings Card */
@@ -271,6 +277,35 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+}
+
+.view-filter-dropdown {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    background: var(--sand);
+    border: 2px solid var(--sand-dark);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 9L1 4h10z' fill='%236B5B4F'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+}
+
+.view-filter-dropdown:hover {
+    border-color: hsl(20, 25%, 35%);
+    background-color: white;
+}
+
+.view-filter-dropdown:focus {
+    outline: none;
+    border-color: hsl(20, 70%, 50%);
+    box-shadow: 0 0 0 3px hsl(20 70% 50% / 0.1);
 }
 
 .review-badge {
@@ -468,8 +503,8 @@ body {
     box-shadow: var(--shadow-card);
     transition: all 0.3s ease;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
     animation: slideIn 0.3s ease-out;
     animation-fill-mode: both;
     position: relative;
@@ -478,6 +513,10 @@ body {
 .vocab-card:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
+}
+
+.vocab-card-inactive {
+    opacity: 0.6;
 }
 
 .vocab-card:nth-child(1) { animation-delay: 0.05s; }
@@ -519,10 +558,42 @@ body {
     }
 }
 
-.vocab-card-content {
+.vocab-card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.vocab-word-pair {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     flex: 1;
-    padding-right: 6rem; /* Space for top-right toggle */
-    padding-top: 0.5rem; /* Space for top-right toggle */
+}
+
+.language-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    color: white;
+    white-space: nowrap;
+}
+
+.language-badge-spanish {
+    background-color: #8B6F47; /* Light brown */
+}
+
+.language-badge-english {
+    background-color: #6B8E6B; /* Light green */
+}
+
+.word-separator {
+    color: var(--muted-foreground);
+    font-size: 1rem;
+    margin: 0 0.25rem;
 }
 
 .vocab-word-primary {
@@ -530,7 +601,7 @@ body {
     font-size: 1.125rem;
     font-weight: 600;
     color: var(--foreground);
-    margin: 0 0 0.25rem 0;
+    margin: 0;
 }
 
 .vocab-word-secondary {
@@ -538,6 +609,162 @@ body {
     font-size: 0.875rem;
     color: var(--muted-foreground);
     margin: 0;
+}
+
+.vocab-card-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.vocab-active-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vocab-active-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    user-select: none;
+}
+
+.vocab-active-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.vocab-active-toggle .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.vocab-active-toggle .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.vocab-active-toggle .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--sand-dark);
+    transition: background-color 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-radius: 24px;
+}
+
+.vocab-active-toggle .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px hsl(20 25% 15% / 0.2);
+}
+
+.vocab-active-toggle input:checked + .toggle-slider {
+    background-color: #6B8E6B; /* Light green when active */
+}
+
+.vocab-active-toggle input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.vocab-delete-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 0.375rem;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vocab-delete-btn:hover {
+    background: hsl(0, 70%, 50% / 0.1);
+    color: hsl(0, 70%, 50%);
+}
+
+.vocab-card-bottom-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.vocab-status-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem; /* 1.5 * 0.25rem = 6px */
+    padding: 0.375rem 0.75rem; /* py-1.5 (6px) px-3 (12px) */
+    border-radius: 0.5rem; /* rounded-lg (8px) */
+    border: none;
+    background: hsl(36, 40%, 80% / 0.5); /* bg-muted/50 - 50% opacity */
+    color: var(--muted-foreground);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem; /* text-xs (12px) */
+    font-weight: 500; /* font-medium */
+    text-transform: none; /* Normal case */
+    cursor: pointer;
+    transition: all 0.2s ease; /* transition-all */
+    flex: 1;
+    justify-content: center;
+}
+
+.vocab-status-btn:hover:not(.vocab-status-btn-active) {
+    background: var(--muted); /* hover:bg-muted */
+}
+
+.vocab-status-btn-review-now {
+    background: hsl(36, 40%, 80% / 0.5);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-btn-review-now.vocab-status-btn-active {
+    background: var(--terracotta-status); /* HSL: 15, 65%, 55% */
+    color: white;
+}
+
+.vocab-status-btn-check-later {
+    background: hsl(36, 40%, 80% / 0.5);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-btn-check-later.vocab-status-btn-active {
+    background: var(--amber-500); /* bg-amber-500 */
+    color: white;
+}
+
+.vocab-status-btn-archived {
+    background: hsl(36, 40%, 80% / 0.5);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-btn-archived.vocab-status-btn-active {
+    background: var(--muted-foreground); /* bg-muted-foreground */
+    color: white;
+}
+
+.status-icon {
+    width: 14px; /* w-3.5 */
+    height: 14px; /* h-3.5 */
+    flex-shrink: 0;
 }
 
 .vocab-card-actions {
@@ -558,6 +785,29 @@ body {
     top: 1rem;
     right: 1rem;
     z-index: 10;
+}
+
+.vocab-review-now-toggle-top-right {
+    position: absolute;
+    top: 1rem;
+    right: 3.5rem;
+    z-index: 10;
+}
+
+.quiz-toggle-group {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    z-index: 10;
+}
+
+.quiz-review-toggle,
+.quiz-review-now-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
 }
 
 .vocab-review-label {
@@ -647,6 +897,42 @@ body {
     color: var(--muted-foreground);
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+.vocab-check-later-btn-bottom-right {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, bottom 0.2s ease;
+}
+
+.vocab-card:hover .vocab-check-later-btn-bottom-right {
+    opacity: 1;
+    bottom: 0.25rem;
+}
+
+.vocab-check-later-btn-bottom-right:hover {
+    background: hsl(40, 70%, 50% / 0.1);
+    color: hsl(40, 70%, 50%);
+}
+
+.vocab-archive-btn-bottom-right {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 3rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, bottom 0.2s ease;
+}
+
+.vocab-card:hover .vocab-archive-btn-bottom-right {
+    opacity: 1;
+    bottom: 0.25rem;
+}
+
+.vocab-archive-btn-bottom-right:hover {
+    background: hsl(200, 50%, 50% / 0.1);
+    color: hsl(200, 50%, 50%);
 }
 
 .vocab-delete-btn-bottom-right {
@@ -1096,6 +1382,48 @@ body {
     border-left: 4px solid var(--terracotta);
 }
 
+.regenerate-hints-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.regenerate-hints-btn:hover:not(:disabled) {
+    background: var(--terracotta-dark);
+    transform: translateY(-1px);
+}
+
+.regenerate-hints-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.regenerate-hints-btn svg {
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .quiz-expandable-content ul {
     margin: 0;
     padding-left: 1.25rem;
@@ -1129,6 +1457,7 @@ body {
 .reveal-btn,
 .hint-btn,
 .examples-btn,
+.conjugations-btn,
 .next-btn {
     padding: 0.875rem 1.75rem;
     border: none;
@@ -1170,6 +1499,80 @@ body {
 .examples-btn:hover:not(:disabled) {
     background: var(--sand);
     transform: translateY(-2px);
+}
+
+.conjugations-btn {
+    background: var(--sand-dark);
+    color: var(--foreground);
+}
+
+.conjugations-btn:hover:not(:disabled) {
+    background: var(--sand);
+    transform: translateY(-2px);
+}
+
+.quiz-conjugations {
+    margin-top: 0.5rem;
+}
+
+.quiz-conjugations .tense-group {
+    margin-bottom: 1.5rem;
+}
+
+.quiz-conjugations .tense-group h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+
+.quiz-conjugations .tense-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.quiz-conjugations .tense-group li {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    padding: 0.25rem 0;
+    line-height: 1.5;
+}
+
+.quiz-conjugations .tense-group li strong {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.quiz-conjugations .tense-group li.irregular {
+    color: hsl(0, 70%, 50%);
+}
+
+.quiz-conjugations .tense-group li.irregular strong {
+    color: hsl(0, 70%, 50%);
+}
+
+.clickable-word {
+    cursor: pointer;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.clickable-word:hover {
+    background-color: hsl(20, 70%, 50% / 0.1);
+    color: hsl(20, 70%, 50%);
+}
+
+.clickable-word:active {
+    background-color: hsl(20, 70%, 50% / 0.2);
 }
 
 .remove-btn {
@@ -1217,6 +1620,30 @@ body {
     border-color: hsl(16, 70%, 50%);
 }
 
+.quiz-archive-btn {
+    left: calc(0.5rem + 36px + 1rem);
+    color: hsl(200, 50%, 50%);
+    border-color: hsl(200, 50%, 50%);
+}
+
+.quiz-archive-btn:hover {
+    background: hsl(200, 50%, 50%);
+    color: white;
+    border-color: hsl(200, 50%, 50%);
+}
+
+.quiz-check-later-btn {
+    left: calc(0.5rem + 36px + 36px + 1.5rem);
+    color: hsl(40, 70%, 50%);
+    border-color: hsl(40, 70%, 50%);
+}
+
+.quiz-check-later-btn:hover {
+    background: hsl(40, 70%, 50%);
+    color: white;
+    border-color: hsl(40, 70%, 50%);
+}
+
 .quiz-delete-btn {
     right: 0.5rem;
     color: hsl(0, 70%, 50%);
@@ -1239,10 +1666,35 @@ body {
     transform: translateY(-2px);
 }
 
+.quiz-navigation-group {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.quiz-navigation-group .prev-btn,
+.quiz-navigation-group .next-btn {
+    flex: 1;
+    max-width: none;
+}
+
+.prev-btn {
+    background: var(--sand-dark);
+    color: var(--foreground);
+}
+
+.prev-btn:hover:not(:disabled) {
+    background: var(--sand);
+    transform: translateY(-2px);
+}
+
 .quiz-next-btn {
     max-width: 600px;
     width: 100%;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
+    display: block !important;
+    visibility: visible !important;
 }
 
 .quiz-empty {
