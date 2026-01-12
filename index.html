@@ -165,6 +165,31 @@
             <div id="quizContent" class="quiz-content">
                 <div id="quizCard" class="quiz-card">
                     <div id="quizWord" class="quiz-word"></div>
+                    <!-- Status chips for mobile quiz mode -->
+                    <div class="quiz-status-chips-mobile">
+                        <button class="quiz-status-chip quiz-status-chip-review-now" id="quiz-status-review-now" data-status="review-now">
+                            <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Review Now</span>
+                        </button>
+                        <button class="quiz-status-chip quiz-status-chip-check-later" id="quiz-status-check-later" data-status="check-later">
+                            <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Check Later</span>
+                        </button>
+                        <button class="quiz-status-chip quiz-status-chip-archived" id="quiz-status-archived" data-status="archived">
+                            <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                                <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>Archived</span>
+                        </button>
+                    </div>
                     <div class="quiz-toggle-group">
                         <label class="quiz-review-toggle" title="Review">
                             <span class="toggle-switch">

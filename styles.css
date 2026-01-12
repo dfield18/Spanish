@@ -1517,6 +1517,81 @@ body {
     justify-content: center;
 }
 
+/* Quiz Status Chips - Hidden on desktop, shown on mobile */
+.quiz-status-chips-mobile {
+    display: none; /* Hidden on desktop */
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.quiz-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 9999px;
+    border: 1.5px solid transparent;
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    position: relative;
+    min-height: 2rem;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.quiz-status-chip:hover:not(.quiz-status-chip-active) {
+    background: hsl(36, 40%, 85% / 0.6);
+    border-color: hsl(20, 15%, 45% / 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px hsl(20 25% 15% / 0.1);
+}
+
+.quiz-status-chip-review-now {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.quiz-status-chip-review-now.quiz-status-chip-active {
+    background: var(--terracotta-status);
+    color: white;
+    border-color: var(--terracotta-status);
+    box-shadow: 0 2px 8px hsl(15, 65%, 55% / 0.3);
+}
+
+.quiz-status-chip-check-later {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.quiz-status-chip-check-later.quiz-status-chip-active {
+    background: var(--amber-500);
+    color: white;
+    border-color: var(--amber-500);
+    box-shadow: 0 2px 8px hsl(43, 96%, 56% / 0.3);
+}
+
+.quiz-status-chip-archived {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.quiz-status-chip-archived.quiz-status-chip-active {
+    background: var(--muted-foreground);
+    color: white;
+    border-color: var(--muted-foreground);
+    box-shadow: 0 2px 8px hsl(20, 15%, 45% / 0.3);
+}
+
 .quiz-translation-container {
     margin-bottom: 1.5rem;
     width: 100%;
@@ -2222,6 +2297,20 @@ body {
         padding: 0.5rem 2rem 0.5rem 0.75rem;
         font-size: 0.8125rem;
         min-height: 2.5rem; /* Better touch target */
+    }
+
+    /* Show quiz status chips on mobile */
+    .quiz-status-chips-mobile {
+        display: flex !important;
+    }
+    
+    /* Hide icon buttons on mobile (replaced by chips) */
+    .quiz-icon-btn {
+        display: none;
+    }
+    
+    .quiz-toggle-group {
+        display: none; /* Hide toggles on mobile */
     }
 
     .quiz-card {

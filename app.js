@@ -954,6 +954,83 @@ const UI = {
             });
         }
         
+        // Quiz status chips (mobile) - same functionality as homepage chips
+        const quizStatusChips = [
+            { id: 'quiz-status-review-now', status: 'review-now' },
+            { id: 'quiz-status-check-later', status: 'check-later' },
+            { id: 'quiz-status-archived', status: 'archived' }
+        ];
+        
+        quizStatusChips.forEach(({ id, status }) => {
+            const chip = document.getElementById(id);
+            if (chip) {
+                chip.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                    if (!currentWord) return;
+                    
+                    // OPTIMISTIC UI UPDATE - Update UI immediately
+                    quizStatusChips.forEach(({ id: chipId }) => {
+                        const chipEl = document.getElementById(chipId);
+                        if (chipEl) chipEl.classList.remove('quiz-status-chip-active');
+                    });
+                    chip.classList.add('quiz-status-chip-active');
+                    
+                    // Update AppState optimistically
+                    const wordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
+                    if (wordIndex !== -1) {
+                        const vocabWord = AppState.words[wordIndex];
+                        vocabWord.status = status;
+                        vocabWord.reviewNow = status === 'review-now';
+                        vocabWord.checkLater = status === 'check-later';
+                        vocabWord.archived = status === 'archived';
+                        vocabWord.review = status !== 'archived';
+                        vocabWord.isActive = true;
+                    }
+                    
+                    // Defer storage update
+                    setTimeout(() => {
+                        const updates = {
+                            status: status,
+                            reviewNow: status === 'review-now',
+                            checkLater: status === 'check-later',
+                            archived: status === 'archived',
+                            review: status !== 'archived',
+                            isActive: true
+                        };
+                        
+                        const words = Storage.updateWord(currentWord.id, updates);
+                        const syncWordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
+                        if (syncWordIndex !== -1) {
+                            AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === currentWord.id));
+                        }
+                        
+                        AppState.updateQuizWords();
+                        // If current word was removed from quiz, go to next or previous
+                        if (AppState.quizWords.length === 0) {
+                            this.renderQuiz();
+                        } else if (AppState.currentQuizIndex >= AppState.quizWords.length) {
+                            AppState.currentQuizIndex = AppState.quizWords.length - 1;
+                            this.renderQuiz();
+                        } else {
+                            // Update chip states in case word is still in quiz
+                            const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
+                            if (updatedWord) {
+                                const updatedVocabWord = new VocabularyWord(updatedWord);
+                                const updatedStatus = updatedVocabWord.status || 'review-now';
+                                quizStatusChips.forEach(({ id: chipId, status: chipStatus }) => {
+                                    const chipEl = document.getElementById(chipId);
+                                    if (chipEl) {
+                                        chipEl.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
+                                    }
+                                });
+                            }
+                        }
+                    }, 0);
+                });
+            }
+        });
+        
         document.getElementById('removeFromReviewBtn').addEventListener('click', () => this.removeFromReview());
         document.getElementById('archiveWordBtn').addEventListener('click', () => this.archiveWordFromQuiz());
         document.getElementById('checkLaterBtn').addEventListener('click', () => this.checkLaterFromQuiz());
@@ -2088,6 +2165,26 @@ const UI = {
         }
         if (quizReviewNowToggle) {
             quizReviewNowToggle.checked = currentVocabWord.reviewNow || false;
+        }
+        
+        // Update quiz status chips (mobile)
+        const currentStatus = currentVocabWord.status || 'review-now';
+        const reviewNowChip = document.getElementById('quiz-status-review-now');
+        const checkLaterChip = document.getElementById('quiz-status-check-later');
+        const archivedChip = document.getElementById('quiz-status-archived');
+        
+        // Remove active class from all chips
+        [reviewNowChip, checkLaterChip, archivedChip].forEach(chip => {
+            if (chip) chip.classList.remove('quiz-status-chip-active');
+        });
+        
+        // Add active class to current status chip
+        if (currentStatus === 'review-now' && reviewNowChip) {
+            reviewNowChip.classList.add('quiz-status-chip-active');
+        } else if (currentStatus === 'check-later' && checkLaterChip) {
+            checkLaterChip.classList.add('quiz-status-chip-active');
+        } else if (currentStatus === 'archived' && archivedChip) {
+            archivedChip.classList.add('quiz-status-chip-active');
         }
         
         // Initialize translation container as expandable (hidden by default)
