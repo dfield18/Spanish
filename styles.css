@@ -1524,6 +1524,7 @@ body {
     margin-bottom: 1rem;
     justify-content: center;
     flex-wrap: wrap;
+    order: -1; /* Ensure chips appear at the top */
 }
 
 .quiz-status-chip {

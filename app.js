@@ -683,6 +683,8 @@ const AppState = {
 
 // UI Components
 const UI = {
+    quizChipListenersAttached: false, // Flag to prevent multiple event listener attachments
+    
     init() {
         this.setupEventListeners();
         // Ensure correct initial view state
@@ -954,26 +956,31 @@ const UI = {
             });
         }
         
-        // Quiz status chips (mobile) - same functionality as homepage chips
-        const quizStatusChips = [
-            { id: 'quiz-status-review-now', status: 'review-now' },
-            { id: 'quiz-status-check-later', status: 'check-later' },
-            { id: 'quiz-status-archived', status: 'archived' }
-        ];
-        
-        quizStatusChips.forEach(({ id, status }) => {
-            const chip = document.getElementById(id);
-            if (chip) {
-                chip.addEventListener('click', (e) => {
+        // Quiz status chips (mobile) - attach event listeners using event delegation
+        // Use event delegation on the quiz card to handle clicks on chips
+        // Only attach once using a flag
+        if (!this.quizChipListenersAttached) {
+            const quizCard = document.getElementById('quizCard');
+            if (quizCard) {
+                quizCard.addEventListener('click', (e) => {
+                    // Check if click is on a quiz status chip (button or its children)
+                    const chip = e.target.closest('.quiz-status-chip');
+                    if (!chip || !chip.dataset.status) return;
+                    
                     e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Make sure we're in quiz view and have quiz words
+                    if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) return;
+                    
                     const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                     if (!currentWord) return;
                     
+                    const status = chip.dataset.status;
+                    
                     // OPTIMISTIC UI UPDATE - Update UI immediately
-                    quizStatusChips.forEach(({ id: chipId }) => {
-                        const chipEl = document.getElementById(chipId);
-                        if (chipEl) chipEl.classList.remove('quiz-status-chip-active');
-                    });
+                    const allChips = quizCard.querySelectorAll('.quiz-status-chip');
+                    allChips.forEach(c => c.classList.remove('quiz-status-chip-active'));
                     chip.classList.add('quiz-status-chip-active');
                     
                     // Update AppState optimistically
@@ -1018,18 +1025,18 @@ const UI = {
                             if (updatedWord) {
                                 const updatedVocabWord = new VocabularyWord(updatedWord);
                                 const updatedStatus = updatedVocabWord.status || 'review-now';
-                                quizStatusChips.forEach(({ id: chipId, status: chipStatus }) => {
-                                    const chipEl = document.getElementById(chipId);
-                                    if (chipEl) {
-                                        chipEl.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
-                                    }
+                                const updatedChips = quizCard.querySelectorAll('.quiz-status-chip');
+                                updatedChips.forEach(c => {
+                                    const chipStatus = c.dataset.status;
+                                    c.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
                                 });
                             }
                         }
                     }, 0);
                 });
+                this.quizChipListenersAttached = true; // Mark as attached
             }
-        });
+        }
         
         document.getElementById('removeFromReviewBtn').addEventListener('click', () => this.removeFromReview());
         document.getElementById('archiveWordBtn').addEventListener('click', () => this.archiveWordFromQuiz());
