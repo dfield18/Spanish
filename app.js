@@ -2050,15 +2050,20 @@ const UI = {
     },
 
     attachQuizChipListeners() {
-        // Quiz status chips (mobile) - attach event listeners using event delegation
-        // Use event delegation on the quiz card to handle clicks on chips
-        // Attach listener if not already attached
+        // Quiz status chips (mobile) - attach event listeners directly to each button
+        // Attach listeners every time to ensure they're always working
         const quizCard = document.getElementById('quizCard');
-        if (quizCard && !this.quizChipListenersAttached) {
-            const handleChipClick = (e) => {
-                // Check if click is on a quiz status chip (button or its children)
-                const chip = e.target.closest('.quiz-status-chip');
-                if (!chip || !chip.dataset.status) return;
+        if (!quizCard) return;
+        
+        const reviewNowChip = document.getElementById('quiz-status-review-now');
+        const checkLaterChip = document.getElementById('quiz-status-check-later');
+        const archivedChip = document.getElementById('quiz-status-archived');
+        
+        // Create handler function that will be attached to each button
+        const createChipHandler = (status, chipElement) => {
+            return (e) => {
+                // Stop event from bubbling up
+                e.stopPropagation();
                 
                 // Make sure we're in quiz view and have quiz words
                 if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) return;
@@ -2066,12 +2071,10 @@ const UI = {
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                 if (!currentWord) return;
                 
-                const status = chip.dataset.status;
-                
                 // OPTIMISTIC UI UPDATE - Update UI immediately
                 const allChips = quizCard.querySelectorAll('.quiz-status-chip');
                 allChips.forEach(c => c.classList.remove('quiz-status-chip-active'));
-                chip.classList.add('quiz-status-chip-active');
+                chipElement.classList.add('quiz-status-chip-active');
                 
                 // Update AppState optimistically
                 const wordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
@@ -2124,11 +2127,18 @@ const UI = {
                     }
                 }, 0);
             };
-            
-            // Attach click event (works on both desktop and mobile)
-            // Modern mobile browsers fire click events after touch events
-            quizCard.addEventListener('click', handleChipClick);
-            this.quizChipListenersAttached = true; // Mark as attached
+        };
+        
+        // Remove old listeners and attach new ones directly to each button
+        // Using onclick ensures the handler is always attached and works reliably
+        if (reviewNowChip) {
+            reviewNowChip.onclick = createChipHandler('review-now', reviewNowChip);
+        }
+        if (checkLaterChip) {
+            checkLaterChip.onclick = createChipHandler('check-later', checkLaterChip);
+        }
+        if (archivedChip) {
+            archivedChip.onclick = createChipHandler('archived', archivedChip);
         }
     },
 
