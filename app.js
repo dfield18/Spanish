@@ -957,86 +957,7 @@ const UI = {
         }
         
         // Quiz status chips (mobile) - attach event listeners using event delegation
-        // Use event delegation on the quiz card to handle clicks on chips
-        // Only attach once using a flag
-        if (!this.quizChipListenersAttached) {
-            const quizCard = document.getElementById('quizCard');
-            if (quizCard) {
-                quizCard.addEventListener('click', (e) => {
-                    // Check if click is on a quiz status chip (button or its children)
-                    const chip = e.target.closest('.quiz-status-chip');
-                    if (!chip || !chip.dataset.status) return;
-                    
-                    e.stopPropagation();
-                    e.preventDefault();
-                    
-                    // Make sure we're in quiz view and have quiz words
-                    if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) return;
-                    
-                    const currentWord = AppState.quizWords[AppState.currentQuizIndex];
-                    if (!currentWord) return;
-                    
-                    const status = chip.dataset.status;
-                    
-                    // OPTIMISTIC UI UPDATE - Update UI immediately
-                    const allChips = quizCard.querySelectorAll('.quiz-status-chip');
-                    allChips.forEach(c => c.classList.remove('quiz-status-chip-active'));
-                    chip.classList.add('quiz-status-chip-active');
-                    
-                    // Update AppState optimistically
-                    const wordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
-                    if (wordIndex !== -1) {
-                        const vocabWord = AppState.words[wordIndex];
-                        vocabWord.status = status;
-                        vocabWord.reviewNow = status === 'review-now';
-                        vocabWord.checkLater = status === 'check-later';
-                        vocabWord.archived = status === 'archived';
-                        vocabWord.review = status !== 'archived';
-                        vocabWord.isActive = true;
-                    }
-                    
-                    // Defer storage update
-                    setTimeout(() => {
-                        const updates = {
-                            status: status,
-                            reviewNow: status === 'review-now',
-                            checkLater: status === 'check-later',
-                            archived: status === 'archived',
-                            review: status !== 'archived',
-                            isActive: true
-                        };
-                        
-                        const words = Storage.updateWord(currentWord.id, updates);
-                        const syncWordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
-                        if (syncWordIndex !== -1) {
-                            AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === currentWord.id));
-                        }
-                        
-                        AppState.updateQuizWords();
-                        // If current word was removed from quiz, go to next or previous
-                        if (AppState.quizWords.length === 0) {
-                            this.renderQuiz();
-                        } else if (AppState.currentQuizIndex >= AppState.quizWords.length) {
-                            AppState.currentQuizIndex = AppState.quizWords.length - 1;
-                            this.renderQuiz();
-                        } else {
-                            // Update chip states in case word is still in quiz
-                            const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
-                            if (updatedWord) {
-                                const updatedVocabWord = new VocabularyWord(updatedWord);
-                                const updatedStatus = updatedVocabWord.status || 'review-now';
-                                const updatedChips = quizCard.querySelectorAll('.quiz-status-chip');
-                                updatedChips.forEach(c => {
-                                    const chipStatus = c.dataset.status;
-                                    c.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
-                                });
-                            }
-                        }
-                    }, 0);
-                });
-                this.quizChipListenersAttached = true; // Mark as attached
-            }
-        }
+        this.attachQuizChipListeners();
         
         document.getElementById('removeFromReviewBtn').addEventListener('click', () => this.removeFromReview());
         document.getElementById('archiveWordBtn').addEventListener('click', () => this.archiveWordFromQuiz());
@@ -2128,6 +2049,89 @@ const UI = {
         return html;
     },
 
+    attachQuizChipListeners() {
+        // Quiz status chips (mobile) - attach event listeners using event delegation
+        // Use event delegation on the quiz card to handle clicks on chips
+        // Attach listener if not already attached
+        const quizCard = document.getElementById('quizCard');
+        if (quizCard && !this.quizChipListenersAttached) {
+            const handleChipClick = (e) => {
+                // Check if click is on a quiz status chip (button or its children)
+                const chip = e.target.closest('.quiz-status-chip');
+                if (!chip || !chip.dataset.status) return;
+                
+                // Make sure we're in quiz view and have quiz words
+                if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) return;
+                
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                if (!currentWord) return;
+                
+                const status = chip.dataset.status;
+                
+                // OPTIMISTIC UI UPDATE - Update UI immediately
+                const allChips = quizCard.querySelectorAll('.quiz-status-chip');
+                allChips.forEach(c => c.classList.remove('quiz-status-chip-active'));
+                chip.classList.add('quiz-status-chip-active');
+                
+                // Update AppState optimistically
+                const wordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
+                if (wordIndex !== -1) {
+                    const vocabWord = AppState.words[wordIndex];
+                    vocabWord.status = status;
+                    vocabWord.reviewNow = status === 'review-now';
+                    vocabWord.checkLater = status === 'check-later';
+                    vocabWord.archived = status === 'archived';
+                    vocabWord.review = status !== 'archived';
+                    vocabWord.isActive = true;
+                }
+                
+                // Defer storage update
+                setTimeout(() => {
+                    const updates = {
+                        status: status,
+                        reviewNow: status === 'review-now',
+                        checkLater: status === 'check-later',
+                        archived: status === 'archived',
+                        review: status !== 'archived',
+                        isActive: true
+                    };
+                    
+                    const words = Storage.updateWord(currentWord.id, updates);
+                    const syncWordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
+                    if (syncWordIndex !== -1) {
+                        AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === currentWord.id));
+                    }
+                    
+                    AppState.updateQuizWords();
+                    // If current word was removed from quiz, go to next or previous
+                    if (AppState.quizWords.length === 0) {
+                        this.renderQuiz();
+                    } else if (AppState.currentQuizIndex >= AppState.quizWords.length) {
+                        AppState.currentQuizIndex = AppState.quizWords.length - 1;
+                        this.renderQuiz();
+                    } else {
+                        // Update chip states in case word is still in quiz
+                        const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
+                        if (updatedWord) {
+                            const updatedVocabWord = new VocabularyWord(updatedWord);
+                            const updatedStatus = updatedVocabWord.status || 'review-now';
+                            const updatedChips = quizCard.querySelectorAll('.quiz-status-chip');
+                            updatedChips.forEach(c => {
+                                const chipStatus = c.dataset.status;
+                                c.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
+                            });
+                        }
+                    }
+                }, 0);
+            };
+            
+            // Attach click event (works on both desktop and mobile)
+            // Modern mobile browsers fire click events after touch events
+            quizCard.addEventListener('click', handleChipClick);
+            this.quizChipListenersAttached = true; // Mark as attached
+        }
+    },
+
     renderQuiz() {
         // Sync quiz filter dropdown
         const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
@@ -2193,6 +2197,9 @@ const UI = {
         } else if (currentStatus === 'archived' && archivedChip) {
             archivedChip.classList.add('quiz-status-chip-active');
         }
+        
+        // Ensure event listeners are attached for quiz status chips (mobile)
+        this.attachQuizChipListeners();
         
         // Initialize translation container as expandable (hidden by default)
         const translationContainer = document.getElementById('quizTranslation');
