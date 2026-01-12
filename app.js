@@ -665,7 +665,7 @@ const UI = {
             });
         }
         
-        // Navigation
+        // Navigation - Desktop and Mobile
         document.getElementById('homeBtn').addEventListener('click', (e) => {
             e.preventDefault();
             this.showView('home');
@@ -674,6 +674,22 @@ const UI = {
             e.preventDefault();
             this.showView('quiz');
         });
+        
+        // Bottom Navigation (Mobile)
+        const bottomHomeBtn = document.getElementById('bottomHomeBtn');
+        const bottomQuizBtn = document.getElementById('bottomQuizBtn');
+        if (bottomHomeBtn) {
+            bottomHomeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showView('home');
+            });
+        }
+        if (bottomQuizBtn) {
+            bottomQuizBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showView('quiz');
+            });
+        }
 
         // Segmented control for native language
         document.querySelectorAll('.segmented-option').forEach(btn => {
@@ -688,21 +704,54 @@ const UI = {
         });
 
         // Review toggle
-        document.getElementById('reviewOnlyToggle').addEventListener('change', (e) => {
-            AppState.reviewOnly = e.target.checked;
+        // Review Only toggle - sync both desktop and mobile toggles
+        const reviewOnlyToggle = document.getElementById('reviewOnlyToggle');
+        const reviewOnlyToggleMobile = document.getElementById('reviewOnlyToggleMobile');
+        
+        const handleReviewToggle = (e) => {
+            const isChecked = e.target.checked;
+            AppState.reviewOnly = isChecked;
             AppState.saveSettings();
+            
+            // Sync both toggles
+            if (reviewOnlyToggle) reviewOnlyToggle.checked = isChecked;
+            if (reviewOnlyToggleMobile) reviewOnlyToggleMobile.checked = isChecked;
+            
             this.render();
-        });
+        };
+        
+        if (reviewOnlyToggle) {
+            reviewOnlyToggle.addEventListener('change', handleReviewToggle);
+        }
+        if (reviewOnlyToggleMobile) {
+            reviewOnlyToggleMobile.addEventListener('change', handleReviewToggle);
+        }
 
-        // View filter dropdown
+        // View filter dropdown (Desktop)
         const viewFilterDropdown = document.getElementById('viewFilterDropdown');
         if (viewFilterDropdown) {
             viewFilterDropdown.addEventListener('change', (e) => {
                 AppState.viewFilter = e.target.value;
                 AppState.saveSettings();
+                this.updateViewChips();
                 this.render();
             });
         }
+        
+        // View chips (Mobile)
+        document.querySelectorAll('.view-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                const view = e.currentTarget.dataset.view;
+                AppState.viewFilter = view;
+                AppState.saveSettings();
+                // Update dropdown to match
+                if (viewFilterDropdown) {
+                    viewFilterDropdown.value = view;
+                }
+                this.updateViewChips();
+                this.render();
+            });
+        });
 
         // Modal controls
         document.getElementById('addWordBtn').addEventListener('click', () => {
@@ -884,53 +933,56 @@ const UI = {
         const quizView = document.getElementById('quizView');
         const homeBtn = document.getElementById('homeBtn');
         const quizBtn = document.getElementById('quizBtn');
+        const bottomHomeBtn = document.getElementById('bottomHomeBtn');
+        const bottomQuizBtn = document.getElementById('bottomQuizBtn');
         
         // Remove active from all views
         if (homeView) homeView.classList.remove('active');
         if (quizView) quizView.classList.remove('active');
         
-        // Force remove active class from ALL nav-tab buttons using multiple methods
-        document.querySelectorAll('.nav-tab').forEach(btn => {
-            btn.classList.remove('active');
-            // Also try removing via className manipulation as backup
-            btn.className = btn.className.replace(/\bactive\b/g, '').trim();
+        // Remove active from all navigation buttons (desktop and mobile)
+        [homeBtn, quizBtn, bottomHomeBtn, bottomQuizBtn].forEach(btn => {
+            if (btn) {
+                btn.classList.remove('active');
+                btn.className = btn.className.replace(/\bactive\b/g, '').trim();
+            }
         });
         
-        // Explicitly ensure both buttons don't have active
-        if (homeBtn) {
-            homeBtn.classList.remove('active');
-            homeBtn.className = homeBtn.className.replace(/\bactive\b/g, '').trim();
-        }
-        if (quizBtn) {
-            quizBtn.classList.remove('active');
-            quizBtn.className = quizBtn.className.replace(/\bactive\b/g, '').trim();
-        }
+        // Also remove from nav-tab class elements
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            btn.classList.remove('active');
+        });
         
         // Then add active to the correct elements
         if (view === 'home') {
             if (homeView) homeView.classList.add('active');
-            if (homeBtn) {
-                homeBtn.classList.add('active');
-            }
-            // Final check - ensure quizBtn is NOT active
-            if (quizBtn) {
-                quizBtn.classList.remove('active');
-                quizBtn.className = quizBtn.className.replace(/\bactive\b/g, '').trim();
-            }
+            if (homeBtn) homeBtn.classList.add('active');
+            if (bottomHomeBtn) bottomHomeBtn.classList.add('active');
+            // Ensure quiz buttons are NOT active
+            if (quizBtn) quizBtn.classList.remove('active');
+            if (bottomQuizBtn) bottomQuizBtn.classList.remove('active');
             this.render();
         } else if (view === 'quiz') {
             if (quizView) quizView.classList.add('active');
-            if (quizBtn) {
-                quizBtn.classList.add('active');
-            }
-            // Final check - ensure homeBtn is NOT active
-            if (homeBtn) {
-                homeBtn.classList.remove('active');
-                homeBtn.className = homeBtn.className.replace(/\bactive\b/g, '').trim();
-            }
+            if (quizBtn) quizBtn.classList.add('active');
+            if (bottomQuizBtn) bottomQuizBtn.classList.add('active');
+            // Ensure home buttons are NOT active
+            if (homeBtn) homeBtn.classList.remove('active');
+            if (bottomHomeBtn) bottomHomeBtn.classList.remove('active');
             AppState.updateQuizWords();
             this.renderQuiz();
         }
+    },
+    
+    updateViewChips() {
+        // Update view chips to reflect current filter
+        document.querySelectorAll('.view-chip').forEach(chip => {
+            if (chip.dataset.view === AppState.viewFilter) {
+                chip.classList.add('active');
+            } else {
+                chip.classList.remove('active');
+            }
+        });
     },
 
     async handleQuickAddWord() {
@@ -1482,12 +1534,25 @@ const UI = {
             }, 100);
         }
 
-        // Update toggle states
-        document.getElementById('reviewOnlyToggle').checked = AppState.reviewOnly;
+        // Update toggle states - sync both desktop and mobile
+        const reviewOnlyToggle = document.getElementById('reviewOnlyToggle');
+        const reviewOnlyToggleMobile = document.getElementById('reviewOnlyToggleMobile');
+        if (reviewOnlyToggle) reviewOnlyToggle.checked = AppState.reviewOnly;
+        if (reviewOnlyToggleMobile) reviewOnlyToggleMobile.checked = AppState.reviewOnly;
         const viewFilterDropdown = document.getElementById('viewFilterDropdown');
         if (viewFilterDropdown) {
             viewFilterDropdown.value = AppState.viewFilter;
         }
+        
+        // Update view chips and mobile language buttons
+        this.updateViewChips();
+        document.querySelectorAll('.mobile-lang-btn').forEach(btn => {
+            if (btn.dataset.lang === AppState.displayLanguage) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
         
         // Update segmented control
         document.querySelectorAll('.segmented-option').forEach(btn => {
@@ -1509,7 +1574,12 @@ const UI = {
             const vocabWord = new VocabularyWord(w);
             return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status === 'review-now';
         });
-        document.getElementById('reviewBadge').textContent = `${dueWords.length} due`;
+        // Update review badge - sync both desktop and mobile
+        const reviewBadge = document.getElementById('reviewBadge');
+        const reviewBadgeMobile = document.getElementById('reviewBadgeMobile');
+        const badgeText = `${dueWords.length} due`;
+        if (reviewBadge) reviewBadge.textContent = badgeText;
+        if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
 
         // Render vocabulary cards
         const list = document.getElementById('vocabularyList');
@@ -1569,7 +1639,12 @@ const UI = {
                             const vocabWord = new VocabularyWord(w);
                             return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status !== 'archived' && vocabWord.status !== 'check-later';
                         });
-                        document.getElementById('reviewBadge').textContent = `${dueWords.length} due`;
+                        // Update review badge - sync both desktop and mobile
+                        const reviewBadge = document.getElementById('reviewBadge');
+                        const reviewBadgeMobile = document.getElementById('reviewBadgeMobile');
+                        const badgeText = `${dueWords.length} due`;
+                        if (reviewBadge) reviewBadge.textContent = badgeText;
+                        if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
                         this.render();
                     });
                 }

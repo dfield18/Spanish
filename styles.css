@@ -117,6 +117,25 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid hsl(20, 15%, 45% / 0.1);
+    position: relative; /* For absolute positioning of mobile toggle */
+}
+
+.header-review-toggle-mobile {
+    display: none; /* Hidden on desktop */
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 101;
+}
+
+.review-only-label-mobile {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    white-space: nowrap;
 }
 
 .header-left {
@@ -184,6 +203,7 @@ body {
     padding: 0.25rem;
     border-radius: 9999px;
     box-shadow: var(--shadow-card); /* Subtle shadow */
+    width: fit-content; /* Only wrap around buttons, not full width */
 }
 
 .nav-tab {
@@ -197,6 +217,7 @@ body {
     color: var(--muted-foreground);
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .nav-tab:hover:not(.active) {
@@ -221,6 +242,16 @@ body {
     box-shadow: var(--shadow-card);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+}
+
+/* Mobile Filter Bar - Hidden on desktop */
+.mobile-filter-bar {
+    display: none;
+}
+
+/* Bottom Navigation - Hidden on desktop */
+.bottom-nav {
+    display: none;
 }
 
 .settings-row {
@@ -1720,11 +1751,27 @@ body {
     .main-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        padding-bottom: 1rem; /* Reduced space for mobile toggle */
+        margin-bottom: 0.25rem; /* Reduced margin */
+        position: fixed; /* Make header fixed on mobile */
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: hsl(40, 40%, 98% / 0.95); /* More opaque for better visibility */
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 1000; /* Higher z-index to stay on top */
+        padding-left: 1rem;
+        padding-right: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
+    /* Hide desktop header nav on mobile */
     .header-nav {
-        width: 100%;
+        display: none;
     }
 
     .quick-add-container {
@@ -1743,6 +1790,8 @@ body {
 
     .settings-card {
         top: 120px; /* Adjusted for mobile header height */
+        padding: 1rem; /* Reduced from 1.5rem */
+        margin-bottom: 1rem; /* Reduced from 2rem */
     }
 
     .add-word-btn {
@@ -1753,7 +1802,50 @@ body {
     .settings-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.75rem;
+        gap: 0.5rem; /* Reduced from 0.75rem */
+        padding: 0.75rem 0; /* Reduced from 1rem 0 */
+    }
+    
+    /* Hide "Show Review Only" row in settings card on mobile */
+    .settings-row:nth-child(2) {
+        display: none;
+    }
+    
+    /* Show mobile toggle in header */
+    .header-review-toggle-mobile {
+        display: flex !important;
+    }
+    
+    /* Hide review badge on mobile */
+    .header-review-toggle-mobile .review-badge {
+        display: none;
+    }
+    
+    .settings-label {
+        font-size: 0.8125rem; /* Slightly smaller on mobile */
+    }
+    
+    .segmented-control {
+        width: 100%;
+        padding: 0.2rem; /* Reduced padding */
+    }
+    
+    .segmented-option {
+        font-size: 0.8125rem; /* Slightly smaller */
+        padding: 0.4rem 0.75rem; /* Reduced padding */
+    }
+    
+    .view-filter-dropdown {
+        width: 100%;
+        font-size: 0.8125rem; /* Slightly smaller */
+        padding: 0.4rem 0.75rem; /* Reduced padding */
+    }
+    
+    .review-toggle-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .quiz-card {
@@ -1766,6 +1858,146 @@ body {
 
     .quiz-translation {
         font-size: 1.5rem;
+    }
+    
+    /* Hide desktop settings card on mobile */
+    .settings-card {
+        display: none;
+    }
+    
+    /* Show mobile filter bar */
+    .mobile-filter-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: var(--card);
+        border-radius: 0.75rem;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-card);
+        position: sticky;
+        top: 120px; /* Position below fixed header */
+        z-index: 999; /* Below header but above content */
+    }
+    
+    .mobile-language-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .mobile-lang-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.4rem 0.75rem;
+        background: var(--sand-dark);
+        border: none;
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .mobile-lang-btn.active {
+        background: white;
+        color: var(--foreground);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .mobile-view-chips {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    
+    .mobile-view-chips::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
+    
+    .view-chip {
+        padding: 0.4rem 0.875rem;
+        background: var(--sand-dark);
+        border: none;
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .view-chip.active {
+        background: var(--terracotta-status);
+        color: white;
+    }
+    
+    .view-chip:hover:not(.active) {
+        background: var(--sand);
+    }
+    
+    /* Bottom Navigation */
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--card);
+        border-top: 1px solid hsl(20, 15%, 45% / 0.1);
+        padding: 0.5rem 0;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .bottom-nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        background: transparent;
+        border: none;
+        color: var(--muted-foreground);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .bottom-nav-btn.active {
+        color: var(--terracotta);
+    }
+    
+    .bottom-nav-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .bottom-nav-btn span {
+        font-size: 0.75rem;
+    }
+    
+    /* Add padding to body on mobile to account for fixed header and bottom nav */
+    body {
+        padding-top: 120px; /* Space for fixed header */
+        padding-bottom: 70px; /* Space for bottom nav */
+    }
+    
+    /* Ensure container doesn't add extra margin on mobile */
+    .container {
+        margin-top: 0;
     }
 }
 
