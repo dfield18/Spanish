@@ -738,6 +738,11 @@ body {
     display: none;
 }
 
+/* Hide Active button in top right on desktop */
+.vocab-active-btn-top-right {
+    display: none;
+}
+
 .vocab-delete-btn {
     width: 32px;
     height: 32px;
@@ -1835,8 +1840,45 @@ body {
         box-shadow: 0 0 0 3px hsl(15, 65%, 55% / 0.1);
     }
     
-    /* Hide active toggle on mobile */
+    /* Hide active toggle on mobile - show button instead */
     .vocab-active-toggle-wrapper {
+        display: none;
+    }
+    
+    /* Show Active button in top right on mobile */
+    .vocab-active-btn-top-right {
+        display: flex !important;
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        border: none;
+        background: hsl(36, 40%, 80% / 0.5);
+        color: var(--muted-foreground);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 10;
+    }
+    
+    .vocab-active-btn-top-right.vocab-active-btn-active {
+        background: #6B8E6B;
+        color: white;
+    }
+    
+    .vocab-active-btn-top-right:hover {
+        background: var(--muted);
+    }
+    
+    .vocab-active-btn-top-right.vocab-active-btn-active:hover {
+        background: #5a7a5a;
+    }
+    
+    /* Hide Active button from bottom row on mobile */
+    .vocab-card-bottom-row .vocab-active-btn-mobile {
         display: none;
     }
     

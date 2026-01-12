@@ -1585,9 +1585,12 @@ const UI = {
             if (activeToggle) {
                 activeToggle.addEventListener('change', (e) => {
                     e.stopPropagation();
-                    const words = Storage.updateWord(word.id, { isActive: e.target.checked });
+                    const newActiveState = e.target.checked;
+                    const words = Storage.updateWord(word.id, { isActive: newActiveState });
                     AppState.words = words.map(w => new VocabularyWord(w));
-                    this.render();
+                    
+                    // Update only the button and card state without re-rendering
+                    this.updateCardActiveState(word.id, newActiveState);
                 });
             }
             
@@ -1599,7 +1602,9 @@ const UI = {
                     const newActiveState = !word.isActive;
                     const words = Storage.updateWord(word.id, { isActive: newActiveState });
                     AppState.words = words.map(w => new VocabularyWord(w));
-                    this.render();
+                    
+                    // Update only the button and card state without re-rendering
+                    this.updateCardActiveState(word.id, newActiveState);
                 });
             }
             
@@ -1626,6 +1631,10 @@ const UI = {
                         const words = Storage.updateWord(word.id, updates);
                         AppState.words = words.map(w => new VocabularyWord(w));
                         AppState.updateQuizWords();
+                        
+                        // Update only the button states without re-rendering
+                        this.updateCardButtonStates(word.id, status);
+                        
                         // Update the review badge count
                         const dueWords = AppState.words.filter(w => {
                             const vocabWord = new VocabularyWord(w);
@@ -1637,7 +1646,6 @@ const UI = {
                         const badgeText = `${dueWords.length} due`;
                         if (reviewBadge) reviewBadge.textContent = badgeText;
                         if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
-                        this.render();
                     });
                 }
             });
@@ -1651,6 +1659,63 @@ const UI = {
                 });
             }
         });
+    },
+    
+    updateCardButtonStates(wordId, newStatus) {
+        // Update status button active states without re-rendering
+        const card = document.getElementById(`vocab-card-${wordId}`);
+        if (!card) return;
+        
+        // Remove active class from all status buttons
+        card.querySelectorAll('.vocab-status-btn').forEach(btn => {
+            btn.classList.remove('vocab-status-btn-active');
+        });
+        
+        // Add active class to the selected button
+        const activeBtn = card.querySelector(`[data-status="${newStatus}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('vocab-status-btn-active');
+        }
+        
+        // Update card inactive state based on status if needed
+        const word = AppState.words.find(w => w.id === wordId);
+        if (word) {
+            const vocabWord = new VocabularyWord(word);
+            if (!vocabWord.isActive) {
+                card.classList.add('vocab-card-inactive');
+            } else {
+                card.classList.remove('vocab-card-inactive');
+            }
+        }
+    },
+    
+    updateCardActiveState(wordId, isActive) {
+        // Update active button and card state without re-rendering
+        const card = document.getElementById(`vocab-card-${wordId}`);
+        if (!card) return;
+        
+        // Update active button state
+        const activeBtn = card.querySelector(`#active-btn-${wordId}`);
+        if (activeBtn) {
+            if (isActive) {
+                activeBtn.classList.add('vocab-active-btn-active');
+            } else {
+                activeBtn.classList.remove('vocab-active-btn-active');
+            }
+        }
+        
+        // Update desktop toggle state
+        const activeToggle = card.querySelector(`#active-toggle-${wordId}`);
+        if (activeToggle) {
+            activeToggle.checked = isActive;
+        }
+        
+        // Update card inactive class
+        if (isActive) {
+            card.classList.remove('vocab-card-inactive');
+        } else {
+            card.classList.add('vocab-card-inactive');
+        }
     },
 
     renderWordCard(word, index) {
@@ -1676,6 +1741,9 @@ const UI = {
                         <span class="vocab-word-secondary">${this.escapeHtml(spanishWord)}</span>
                     </div>
                     <div class="vocab-card-top-actions">
+                        <button class="vocab-active-btn-mobile vocab-active-btn-top-right ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
+                            Active
+                        </button>
                         <div class="vocab-active-toggle-wrapper">
                             <span class="vocab-active-label">Active</span>
                             <label class="vocab-active-toggle">
