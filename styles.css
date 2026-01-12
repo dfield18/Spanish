@@ -123,6 +123,12 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.header-left:hover {
+    opacity: 0.8;
 }
 
 .logo {

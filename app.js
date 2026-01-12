@@ -551,7 +551,7 @@ const AppState = {
     words: [],
     displayLanguage: 'spanish', // 'spanish' or 'english'
     reviewOnly: false,
-    viewFilter: 'active', // 'all', 'active', or 'archive'
+    viewFilter: 'reviewNow', // 'all', 'active', 'archive', 'checkLater', or 'reviewNow'
     currentView: 'home', // 'home' or 'quiz'
     currentQuizIndex: 0,
     quizWords: [],
@@ -656,6 +656,15 @@ const UI = {
     },
 
     setupEventListeners() {
+        // Logo/Brand click to go home
+        const headerLogo = document.getElementById('headerLogo');
+        if (headerLogo) {
+            headerLogo.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showView('home');
+            });
+        }
+        
         // Navigation
         document.getElementById('homeBtn').addEventListener('click', (e) => {
             e.preventDefault();
