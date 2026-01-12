@@ -27,8 +27,12 @@ class VocabularyWord {
         // New status system
         this.isActive = data.isActive !== undefined ? data.isActive : true; // Active toggle
         // Determine status from existing flags or use provided status
-        if (data.status) {
-            this.status = data.status; // 'review-now' | 'check-later' | 'archived'
+        // Status can be: 'review-now' | 'check-later' | 'archived' | null (when only Active is selected)
+        if (data.status !== undefined && data.status !== null) {
+            this.status = data.status;
+        } else if (data.status === null) {
+            // Explicitly set to null (Active only, no status)
+            this.status = null;
         } else {
             // Migrate from old flags to new status system
             if (data.archived) {
@@ -1586,28 +1590,71 @@ const UI = {
                 activeToggle.addEventListener('change', (e) => {
                     e.stopPropagation();
                     const newActiveState = e.target.checked;
-                    const words = Storage.updateWord(word.id, { isActive: newActiveState });
+                    
+                    // If making inactive and status is "review-now", change status to "check-later"
+                    const updates = { isActive: newActiveState };
+                    if (!newActiveState && word.status === 'review-now') {
+                        updates.status = 'check-later';
+                        updates.reviewNow = false;
+                        updates.checkLater = true;
+                    }
+                    
+                    const words = Storage.updateWord(word.id, updates);
                     AppState.words = words.map(w => new VocabularyWord(w));
+                    AppState.updateQuizWords();
                     
                     // Update only the button and card state without re-rendering
                     this.updateCardActiveState(word.id, newActiveState);
+                    
+                    // If status changed, update status buttons too
+                    if (!newActiveState && word.status === 'review-now') {
+                        this.updateCardButtonStates(word.id, 'check-later');
+                    }
                 });
             }
             
-            // Attach active button listener (Mobile) - works like status buttons
+            // Attach active button listener (Mobile) - mutually exclusive with status buttons
             const activeBtn = document.getElementById(`active-btn-${word.id}`);
             if (activeBtn) {
                 activeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const newActiveState = !word.isActive;
-                    const words = Storage.updateWord(word.id, { isActive: newActiveState });
-                    AppState.words = words.map(w => new VocabularyWord(w));
                     
-                    // Update only the button and card state without re-rendering
-                    this.updateCardActiveState(word.id, newActiveState);
-                    
-                    // Update quiz words if needed
-                    AppState.updateQuizWords();
+                    if (newActiveState) {
+                        // When selecting Active, clear all status buttons
+                        const updates = { 
+                            isActive: true,
+                            status: null, // Clear status
+                            reviewNow: false,
+                            checkLater: false,
+                            archived: false
+                        };
+                        
+                        const words = Storage.updateWord(word.id, updates);
+                        AppState.words = words.map(w => new VocabularyWord(w));
+                        AppState.updateQuizWords();
+                        
+                        // Update button states - deselect all status buttons, select Active
+                        this.updateCardButtonStates(word.id, null);
+                        this.updateCardActiveState(word.id, true);
+                    } else {
+                        // When deselecting Active, set default status to "check-later"
+                        const updates = { 
+                            isActive: false,
+                            status: 'check-later',
+                            reviewNow: false,
+                            checkLater: true,
+                            archived: false
+                        };
+                        
+                        const words = Storage.updateWord(word.id, updates);
+                        AppState.words = words.map(w => new VocabularyWord(w));
+                        AppState.updateQuizWords();
+                        
+                        // Update button states - select Check Later, deselect Active
+                        this.updateCardButtonStates(word.id, 'check-later');
+                        this.updateCardActiveState(word.id, false);
+                    }
                 });
             }
             
@@ -1629,14 +1676,28 @@ const UI = {
                             reviewNow: status === 'review-now',
                             checkLater: status === 'check-later',
                             archived: status === 'archived',
-                            review: status !== 'archived' // Keep review enabled unless archived
+                            review: status !== 'archived', // Keep review enabled unless archived
+                            isActive: true // When selecting a status, word becomes active
                         };
+                        
                         const words = Storage.updateWord(word.id, updates);
                         AppState.words = words.map(w => new VocabularyWord(w));
                         AppState.updateQuizWords();
                         
                         // Update only the button states without re-rendering
                         this.updateCardButtonStates(word.id, status);
+                        
+                        // When selecting a status, Active button should not be visually selected
+                        // (even though isActive=true, we want status button to be the selected one)
+                        // So we keep isActive=true but don't visually highlight Active button
+                        const card = document.getElementById(`vocab-card-${word.id}`);
+                        if (card) {
+                            const activeBtn = card.querySelector(`#active-btn-${word.id}`);
+                            if (activeBtn) {
+                                // Remove active class from Active button when status is selected
+                                activeBtn.classList.remove('vocab-active-btn-active');
+                            }
+                        }
                         
                         // Update the review badge count
                         const dueWords = AppState.words.filter(w => {
@@ -1674,10 +1735,18 @@ const UI = {
             btn.classList.remove('vocab-status-btn-active');
         });
         
-        // Add active class to the selected button
-        const activeBtn = card.querySelector(`[data-status="${newStatus}"]`);
-        if (activeBtn) {
-            activeBtn.classList.add('vocab-status-btn-active');
+        // Add active class to the selected button (if status is provided and not null)
+        if (newStatus) {
+            const activeBtn = card.querySelector(`[data-status="${newStatus}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('vocab-status-btn-active');
+            }
+        }
+        
+        // Deselect Active button when a status is selected
+        const activeBtn = card.querySelector(`#active-btn-${wordId}`);
+        if (activeBtn && newStatus !== null) {
+            activeBtn.classList.remove('vocab-active-btn-active');
         }
         
         // Update card inactive state based on status if needed
@@ -1697,10 +1766,14 @@ const UI = {
         const card = document.getElementById(`vocab-card-${wordId}`);
         if (!card) return;
         
-        // Update active button state
+        // Get current word to check status
+        const word = AppState.words.find(w => w.id === wordId);
+        const currentStatus = word ? (new VocabularyWord(word)).status : null;
+        
+        // Update active button state - only highlight if isActive=true AND status is null
         const activeBtn = card.querySelector(`#active-btn-${wordId}`);
         if (activeBtn) {
-            if (isActive) {
+            if (isActive && currentStatus === null) {
                 activeBtn.classList.add('vocab-active-btn-active');
             } else {
                 activeBtn.classList.remove('vocab-active-btn-active');
@@ -1711,6 +1784,13 @@ const UI = {
         const activeToggle = card.querySelector(`#active-toggle-${wordId}`);
         if (activeToggle) {
             activeToggle.checked = isActive;
+        }
+        
+        // Deselect all status buttons when Active is selected
+        if (isActive && currentStatus === null) {
+            card.querySelectorAll('.vocab-status-btn').forEach(btn => {
+                btn.classList.remove('vocab-status-btn-active');
+            });
         }
         
         // Update card inactive class
@@ -1725,13 +1805,15 @@ const UI = {
         const vocabWord = new VocabularyWord(word); // Ensure it has all methods
         const spanishWord = vocabWord.spanish;
         const englishWord = vocabWord.english;
-        const currentStatus = vocabWord.status || 'review-now';
+        const currentStatus = vocabWord.status; // Can be 'review-now', 'check-later', 'archived', or null
         const isActive = vocabWord.isActive !== undefined ? vocabWord.isActive : true;
         
-        // Determine which status button should be active
+        // Determine which status button should be active (only if status is not null)
         const isReviewNow = currentStatus === 'review-now';
         const isCheckLater = currentStatus === 'check-later';
         const isArchived = currentStatus === 'archived';
+        // Active button is selected only if isActive=true AND status is null
+        const isActiveOnly = isActive && currentStatus === null;
         
         return `
             <div class="vocab-card ${!isActive ? 'vocab-card-inactive' : ''}" id="vocab-card-${vocabWord.id}" style="animation-delay: ${index * 0.05}s">
@@ -1787,7 +1869,7 @@ const UI = {
                         </svg>
                         ${STATUS_LABELS['archived']}
                     </button>
-                    <button class="vocab-active-btn-mobile vocab-active-btn-bottom-right ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
+                    <button class="vocab-active-btn-mobile vocab-active-btn-bottom-right ${isActiveOnly ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
                         Active
                     </button>
                 </div>
