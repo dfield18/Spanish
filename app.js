@@ -743,9 +743,7 @@ const UI = {
         }
 
         // Modal controls
-        document.getElementById('addWordBtn').addEventListener('click', () => {
-            document.getElementById('addWordModal').classList.add('active');
-        });
+        // Add Word button removed - using quick add input instead
 
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('addWordModal').classList.remove('active');
@@ -755,10 +753,12 @@ const UI = {
             document.getElementById('addWordModal').classList.remove('active');
         });
 
-        // Quick add word input
-        document.getElementById('quickAddBtn').addEventListener('click', () => this.handleQuickAddWord());
+        // Quick add word input - Enter key adds word
         document.getElementById('quickAddInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.handleQuickAddWord();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.handleQuickAddWord();
+            }
         });
 
         // Submit word from modal
@@ -986,10 +986,6 @@ const UI = {
             return;
         }
 
-        const btn = document.getElementById('quickAddBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span>...</span>';
-        
         // Split input by commas, newlines, or spaces
         // Filter out empty strings and trim each word
         const wordsToAdd = inputText
@@ -1000,8 +996,6 @@ const UI = {
         if (wordsToAdd.length === 0) {
             statusEl.textContent = 'Please enter at least one word.';
             statusEl.className = 'status-message error';
-            btn.disabled = false;
-            btn.innerHTML = '<svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
             setTimeout(() => {
                 statusEl.textContent = '';
                 statusEl.className = 'status-message';
@@ -1122,13 +1116,6 @@ const UI = {
                 statusEl.className = 'status-message';
             }, 5000);
         }
-        
-        btn.disabled = false;
-        btn.innerHTML = `
-            <svg class="plus-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        `;
     },
 
     async handleAddWord() {
