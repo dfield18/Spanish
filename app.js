@@ -1594,7 +1594,7 @@ const UI = {
                 });
             }
             
-            // Attach active button listener (Mobile)
+            // Attach active button listener (Mobile) - works like status buttons
             const activeBtn = document.getElementById(`active-btn-${word.id}`);
             if (activeBtn) {
                 activeBtn.addEventListener('click', (e) => {
@@ -1605,6 +1605,9 @@ const UI = {
                     
                     // Update only the button and card state without re-rendering
                     this.updateCardActiveState(word.id, newActiveState);
+                    
+                    // Update quiz words if needed
+                    AppState.updateQuizWords();
                 });
             }
             
@@ -1741,9 +1744,6 @@ const UI = {
                         <span class="vocab-word-secondary">${this.escapeHtml(spanishWord)}</span>
                     </div>
                     <div class="vocab-card-top-actions">
-                        <button class="vocab-active-btn-mobile vocab-active-btn-top-right ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
-                            Active
-                        </button>
                         <div class="vocab-active-toggle-wrapper">
                             <span class="vocab-active-label">Active</span>
                             <label class="vocab-active-toggle">
@@ -1787,7 +1787,7 @@ const UI = {
                         </svg>
                         ${STATUS_LABELS['archived']}
                     </button>
-                    <button class="vocab-active-btn vocab-active-btn-mobile ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
+                    <button class="vocab-active-btn-mobile vocab-active-btn-bottom-right ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
                         Active
                     </button>
                 </div>
@@ -2564,10 +2564,32 @@ const UI = {
         const confirmed = confirm(`Are you sure you want to delete "${displayWord}"?\n\nThis action cannot be undone.`);
         
         if (confirmed) {
+            // Save scroll position before deletion
+            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Remove the card from DOM immediately
+            const card = document.getElementById(`vocab-card-${word.id}`);
+            if (card) {
+                card.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.remove();
+                }, 200);
+            }
+            
+            // Update storage and state
             const words = Storage.deleteWord(word.id);
             AppState.words = words.map(w => new VocabularyWord(w));
             AppState.updateQuizWords();
+            
+            // Re-render to update counts and filters
             this.render();
+            
+            // Restore scroll position after render
+            requestAnimationFrame(() => {
+                window.scrollTo(0, scrollPosition);
+            });
         }
     },
 
