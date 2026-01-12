@@ -549,7 +549,7 @@ Return ONLY valid JSON, no additional text.`;
 // Application State
 const AppState = {
     words: [],
-    displayLanguage: 'spanish', // 'spanish' or 'english'
+    displayLanguage: 'english', // 'spanish' or 'english'
     reviewOnly: false,
     viewFilter: 'reviewNow', // 'all', 'active', 'archive', 'checkLater', or 'reviewNow'
     currentView: 'home', // 'home' or 'quiz'
@@ -759,6 +759,11 @@ const UI = {
                 e.preventDefault();
                 this.handleQuickAddWord();
             }
+        });
+        
+        // Add Word button below input
+        document.getElementById('quickAddBtn').addEventListener('click', () => {
+            this.handleQuickAddWord();
         });
 
         // Submit word from modal
@@ -975,6 +980,7 @@ const UI = {
         const input = document.getElementById('quickAddInput');
         const inputText = input.value.trim();
         const statusEl = document.getElementById('quickAddStatus');
+        const btn = document.getElementById('quickAddBtn');
         
         if (!inputText) {
             statusEl.textContent = 'Please enter a word.';
@@ -984,6 +990,12 @@ const UI = {
                 statusEl.className = 'status-message';
             }, 3000);
             return;
+        }
+
+        // Disable button while processing
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
         }
 
         // Split input by commas, newlines, or spaces
@@ -996,6 +1008,10 @@ const UI = {
         if (wordsToAdd.length === 0) {
             statusEl.textContent = 'Please enter at least one word.';
             statusEl.className = 'status-message error';
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Add Word';
+            }
             setTimeout(() => {
                 statusEl.textContent = '';
                 statusEl.className = 'status-message';
@@ -1115,6 +1131,12 @@ const UI = {
                 statusEl.textContent = '';
                 statusEl.className = 'status-message';
             }, 5000);
+        }
+        
+        // Re-enable button
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Add Word';
         }
     },
 
@@ -1647,11 +1669,11 @@ const UI = {
             <div class="vocab-card ${!isActive ? 'vocab-card-inactive' : ''}" id="vocab-card-${vocabWord.id}" style="animation-delay: ${index * 0.05}s">
                 <div class="vocab-card-top-row">
                     <div class="vocab-word-pair">
-                        <span class="language-badge language-badge-spanish">ES</span>
-                        <span class="vocab-word-primary">${this.escapeHtml(spanishWord)}</span>
-                        <span class="word-separator">→</span>
                         <span class="language-badge language-badge-english">EN</span>
-                        <span class="vocab-word-secondary">${this.escapeHtml(englishWord)}</span>
+                        <span class="vocab-word-primary">${this.escapeHtml(englishWord)}</span>
+                        <span class="word-separator">→</span>
+                        <span class="language-badge language-badge-spanish">ES</span>
+                        <span class="vocab-word-secondary">${this.escapeHtml(spanishWord)}</span>
                     </div>
                     <div class="vocab-card-top-actions">
                         <div class="vocab-active-toggle-wrapper">

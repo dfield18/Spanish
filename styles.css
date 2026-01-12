@@ -413,6 +413,40 @@ body {
     color: var(--muted-foreground);
 }
 
+.quick-add-btn-below {
+    width: auto;
+    padding: 0.875rem 1.5rem;
+    margin-top: 0.75rem;
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.quick-add-btn-below:hover:not(:disabled) {
+    background: hsl(15, 65%, 50%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(16, 70%, 50% / 0.3);
+}
+
+.quick-add-btn-below:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.quick-add-btn-below:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .quick-add-btn {
     display: flex;
     align-items: center;
@@ -1806,16 +1840,15 @@ body {
         display: none;
     }
     
-    /* Ensure status buttons are equal size on mobile */
+    /* Ensure status buttons are equal size on mobile - 2x2 grid */
     .vocab-card-bottom-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0.5rem;
     }
     
     .vocab-status-btn {
-        flex: 1 1 0; /* Equal flex basis for equal sizing */
-        min-width: 0;
-        width: 0; /* Force equal width distribution */
+        width: 100%;
         text-align: center;
         justify-content: center;
         white-space: nowrap;
@@ -1865,6 +1898,15 @@ body {
 
     .quick-add-btn {
         width: 100%;
+    }
+    
+    .quick-add-btn-below {
+        width: auto;
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .vocabulary-header {
