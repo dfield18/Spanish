@@ -1599,9 +1599,19 @@ const UI = {
                         updates.checkLater = true;
                     }
                     
+                    // Update storage
                     const words = Storage.updateWord(word.id, updates);
-                    AppState.words = words.map(w => new VocabularyWord(w));
-                    AppState.updateQuizWords();
+                    
+                    // Update only the specific word in AppState
+                    const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                    if (wordIndex !== -1) {
+                        AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                    }
+                    
+                    // Only update quiz words if we're on quiz view or if status changed from review-now
+                    if (AppState.currentView === 'quiz' || (!newActiveState && word.status === 'review-now')) {
+                        AppState.updateQuizWords();
+                    }
                     
                     // Update only the button and card state without re-rendering
                     this.updateCardActiveState(word.id, newActiveState);
@@ -1630,9 +1640,19 @@ const UI = {
                             archived: false
                         };
                         
+                        // Update storage
                         const words = Storage.updateWord(word.id, updates);
-                        AppState.words = words.map(w => new VocabularyWord(w));
-                        AppState.updateQuizWords();
+                        
+                        // Update only the specific word in AppState
+                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (wordIndex !== -1) {
+                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                        }
+                        
+                        // Only update quiz words if we're on quiz view (removing from quiz)
+                        if (AppState.currentView === 'quiz') {
+                            AppState.updateQuizWords();
+                        }
                         
                         // Update button states - deselect all status buttons, select Active
                         this.updateCardButtonStates(word.id, null);
@@ -1647,9 +1667,19 @@ const UI = {
                             archived: false
                         };
                         
+                        // Update storage
                         const words = Storage.updateWord(word.id, updates);
-                        AppState.words = words.map(w => new VocabularyWord(w));
-                        AppState.updateQuizWords();
+                        
+                        // Update only the specific word in AppState
+                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (wordIndex !== -1) {
+                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                        }
+                        
+                        // Only update quiz words if we're on quiz view
+                        if (AppState.currentView === 'quiz') {
+                            AppState.updateQuizWords();
+                        }
                         
                         // Update button states - select Check Later, deselect Active
                         this.updateCardButtonStates(word.id, 'check-later');
@@ -1680,36 +1710,43 @@ const UI = {
                             isActive: true // When selecting a status, word becomes active
                         };
                         
+                        // Update storage
                         const words = Storage.updateWord(word.id, updates);
-                        AppState.words = words.map(w => new VocabularyWord(w));
-                        AppState.updateQuizWords();
+                        
+                        // Update only the specific word in AppState instead of recreating all
+                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (wordIndex !== -1) {
+                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                        }
+                        
+                        // Only update quiz words if we're on quiz view or if status affects quiz eligibility
+                        if (AppState.currentView === 'quiz' || status === 'review-now') {
+                            AppState.updateQuizWords();
+                        }
                         
                         // Update only the button states without re-rendering
                         this.updateCardButtonStates(word.id, status);
                         
                         // When selecting a status, Active button should not be visually selected
-                        // (even though isActive=true, we want status button to be the selected one)
-                        // So we keep isActive=true but don't visually highlight Active button
                         const card = document.getElementById(`vocab-card-${word.id}`);
                         if (card) {
                             const activeBtn = card.querySelector(`#active-btn-${word.id}`);
                             if (activeBtn) {
-                                // Remove active class from Active button when status is selected
                                 activeBtn.classList.remove('vocab-active-btn-active');
                             }
                         }
                         
-                        // Update the review badge count
-                        const dueWords = AppState.words.filter(w => {
-                            const vocabWord = new VocabularyWord(w);
-                            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status !== 'archived' && vocabWord.status !== 'check-later';
+                        // Defer review badge update to avoid blocking UI
+                        requestAnimationFrame(() => {
+                            const dueWords = AppState.words.filter(w => {
+                                return w.review && w.isDueForReview && w.isDueForReview() && w.status !== 'archived' && w.status !== 'check-later';
+                            });
+                            const reviewBadge = document.getElementById('reviewBadge');
+                            const reviewBadgeMobile = document.getElementById('reviewBadgeMobile');
+                            const badgeText = `${dueWords.length} due`;
+                            if (reviewBadge) reviewBadge.textContent = badgeText;
+                            if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
                         });
-                        // Update review badge - sync both desktop and mobile
-                        const reviewBadge = document.getElementById('reviewBadge');
-                        const reviewBadgeMobile = document.getElementById('reviewBadgeMobile');
-                        const badgeText = `${dueWords.length} due`;
-                        if (reviewBadge) reviewBadge.textContent = badgeText;
-                        if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
                     });
                 }
             });
