@@ -833,7 +833,7 @@ body {
     box-shadow: 0 2px 8px hsl(20, 15%, 45% / 0.3);
 }
 
-/* Active Chip Styles */
+/* Active Chip Styles - Same as status chips for consistency */
 .vocab-active-chip {
     display: inline-flex;
     align-items: center;
@@ -851,6 +851,12 @@ body {
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
+    flex: 1; /* Same flex as status chips for equal sizing */
+    position: relative; /* Same as status chips */
+    min-height: 2rem; /* Ensure minimum clickable area */
+    -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
+    user-select: none; /* Prevent text selection */
+    touch-action: manipulation; /* Optimize for touch */
 }
 
 .vocab-active-chip:hover:not(.vocab-active-chip-active) {
@@ -860,11 +866,25 @@ body {
     box-shadow: 0 2px 4px hsl(20 25% 15% / 0.1);
 }
 
+.vocab-active-chip:active {
+    transform: translateY(0);
+}
+
 .vocab-active-chip-active {
     background: #6B8E6B; /* Light green when active */
     color: white;
     border-color: #6B8E6B;
     box-shadow: 0 2px 8px hsl(120, 20%, 50% / 0.3);
+}
+
+.vocab-active-chip-active:hover {
+    background: #5a7a5a; /* Slightly darker on hover when active */
+    box-shadow: 0 2px 12px hsl(120, 20%, 50% / 0.4);
+}
+
+.vocab-active-chip-active:hover {
+    background: #5a7a5a; /* Slightly darker on hover when active */
+    box-shadow: 0 2px 12px hsl(120, 20%, 50% / 0.4);
 }
 
 .vocab-status-btn {
@@ -1419,6 +1439,34 @@ body {
     margin-bottom: 0.75rem;
 }
 
+.quiz-view-filter-dropdown {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1.5px solid var(--sand-dark);
+    border-radius: 0.5rem;
+    background: white;
+    color: var(--foreground);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 12px;
+}
+
+.quiz-view-filter-dropdown:hover {
+    border-color: hsl(20, 15%, 45% / 0.25);
+}
+
+.quiz-view-filter-dropdown:focus {
+    outline: none;
+    border-color: var(--terracotta);
+    box-shadow: 0 0 0 3px hsl(15, 65%, 55% / 0.1);
+}
+
 .quiz-controls {
     display: flex;
     justify-content: space-between;
@@ -1967,11 +2015,14 @@ body {
     
     /* Active chip for mobile - positioned in bottom right */
     .vocab-active-chip-mobile {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         width: 100%;
         white-space: nowrap;
+        flex: 1; /* Same as status chips */
+        min-height: 2rem; /* Ensure minimum clickable area */
+        touch-action: manipulation; /* Optimize for touch */
     }
     
     /* Position Active chip in bottom right (below Check Later) */
@@ -1992,11 +2043,14 @@ body {
     
     /* Active chip for mobile - positioned in bottom right */
     .vocab-active-chip-mobile {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         width: 100%;
         white-space: nowrap;
+        flex: 1; /* Same as status chips */
+        min-height: 2rem; /* Ensure minimum clickable area */
+        touch-action: manipulation; /* Optimize for touch */
     }
     
     /* Position Active chip in bottom right (below Check Later) */
@@ -2128,6 +2182,46 @@ body {
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+
+    /* Quiz mode mobile optimizations */
+    .quiz-header {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .quiz-header h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quiz-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .quiz-controls label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+    
+    .quiz-view-filter-dropdown {
+        width: 100%;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        min-height: 2.5rem; /* Better touch target */
+    }
+    
+    #quizLanguageToggle {
+        width: 100%;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+        min-height: 2.5rem; /* Better touch target */
     }
 
     .quiz-card {

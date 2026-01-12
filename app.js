@@ -559,6 +559,7 @@ const AppState = {
     currentView: 'home', // 'home' or 'quiz'
     currentQuizIndex: 0,
     quizWords: [],
+    quizViewFilter: 'reviewNow', // Filter for quiz mode: 'all', 'active', 'archive', 'checkLater', or 'reviewNow'
 
     init() {
         const storedWords = Storage.getWords();
@@ -578,9 +579,11 @@ const AppState = {
             const savedLang = localStorage.getItem('displayLanguage');
             const savedReviewOnly = localStorage.getItem('reviewOnly');
             const savedViewFilter = localStorage.getItem('viewFilter');
+            const savedQuizViewFilter = localStorage.getItem('quizViewFilter');
             if (savedLang) this.displayLanguage = savedLang;
             if (savedReviewOnly !== null) this.reviewOnly = savedReviewOnly === 'true';
             if (savedViewFilter) this.viewFilter = savedViewFilter;
+            if (savedQuizViewFilter) this.quizViewFilter = savedQuizViewFilter;
         } catch (error) {
             console.error('Error loading settings from localStorage:', error);
         }
@@ -596,17 +599,44 @@ const AppState = {
             localStorage.setItem('displayLanguage', this.displayLanguage);
             localStorage.setItem('reviewOnly', this.reviewOnly.toString());
             localStorage.setItem('viewFilter', this.viewFilter);
+            localStorage.setItem('quizViewFilter', this.quizViewFilter || 'reviewNow');
         } catch (error) {
             console.error('Error saving settings to localStorage:', error);
         }
     },
 
     updateQuizWords() {
-        this.quizWords = this.words.filter(w => {
+        let filtered = this.words.filter(w => {
             const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
-            // Only include words that are enabled for review AND due for review AND status is review-now
-            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status === 'review-now';
+            // Only include words that are enabled for review AND due for review
+            return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview();
         });
+        
+        // Apply quiz view filter
+        if (this.quizViewFilter === 'active') {
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.isActive !== false;
+            });
+        } else if (this.quizViewFilter === 'archive') {
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'archived';
+            });
+        } else if (this.quizViewFilter === 'checkLater') {
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'check-later';
+            });
+        } else if (this.quizViewFilter === 'reviewNow') {
+            filtered = filtered.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'review-now';
+            });
+        }
+        // If quizViewFilter is 'all', show all words that are due for review (no status filtering)
+        
+        this.quizWords = filtered;
     },
 
     getFilteredWords() {
@@ -853,6 +883,18 @@ const UI = {
         }
 
         // Quiz controls
+        // Quiz view filter dropdown
+        const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
+        if (quizViewFilterDropdown) {
+            quizViewFilterDropdown.addEventListener('change', (e) => {
+                AppState.quizViewFilter = e.target.value;
+                AppState.saveSettings();
+                AppState.currentQuizIndex = 0; // Reset to first word when filter changes
+                AppState.updateQuizWords();
+                this.renderQuiz();
+            });
+        }
+        
         document.getElementById('quizLanguageToggle').addEventListener('change', (e) => {
             AppState.displayLanguage = e.target.value;
             AppState.saveSettings();
@@ -1942,23 +1984,23 @@ const UI = {
                     </button>
                     <button class="vocab-status-chip vocab-status-chip-check-later ${isCheckLater ? 'vocab-status-chip-active' : ''}" id="status-check-later-${vocabWord.id}" data-status="check-later">
                         <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                         <span>${STATUS_LABELS['check-later']}</span>
-                    </button>
+                </button>
                     <button class="vocab-status-chip vocab-status-chip-archived ${isArchived ? 'vocab-status-chip-active' : ''}" id="status-archived-${vocabWord.id}" data-status="archived">
                         <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                        <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
                         <span>${STATUS_LABELS['archived']}</span>
-                    </button>
-                    <button class="vocab-active-chip vocab-active-chip-mobile vocab-active-chip-bottom-right ${isActiveOnly ? 'vocab-active-chip-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
-                        <span>Active</span>
-                    </button>
+                </button>
+                    <button class="vocab-active-chip vocab-active-chip-mobile vocab-active-chip-bottom-right ${isActiveOnly ? 'vocab-active-chip-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}" type="button">
+                        Active
+                </button>
                 </div>
             </div>
         `;
@@ -2003,6 +2045,12 @@ const UI = {
     },
 
     renderQuiz() {
+        // Sync quiz filter dropdown
+        const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
+        if (quizViewFilterDropdown) {
+            quizViewFilterDropdown.value = AppState.quizViewFilter || 'reviewNow';
+        }
+        
         AppState.updateQuizWords();
         const quizContent = document.getElementById('quizContent');
         const quizCard = document.getElementById('quizCard');
