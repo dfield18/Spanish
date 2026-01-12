@@ -768,6 +768,105 @@ body {
     align-items: center;
 }
 
+/* Chip Selector Styles */
+.vocab-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem; /* 6px */
+    padding: 0.5rem 0.875rem; /* py-2 px-3.5 */
+    border-radius: 9999px; /* Fully rounded pill shape */
+    border: 1.5px solid transparent;
+    background: hsl(36, 40%, 85% / 0.4); /* Subtle background */
+    color: var(--muted-foreground);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem; /* text-xs (12px) */
+    font-weight: 500; /* font-medium */
+    text-transform: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    position: relative;
+}
+
+.vocab-status-chip:hover:not(.vocab-status-chip-active) {
+    background: hsl(36, 40%, 85% / 0.6);
+    border-color: hsl(20, 15%, 45% / 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px hsl(20 25% 15% / 0.1);
+}
+
+.vocab-status-chip-review-now {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-chip-review-now.vocab-status-chip-active {
+    background: var(--terracotta-status); /* HSL: 15, 65%, 55% */
+    color: white;
+    border-color: var(--terracotta-status);
+    box-shadow: 0 2px 8px hsl(15, 65%, 55% / 0.3);
+}
+
+.vocab-status-chip-check-later {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-chip-check-later.vocab-status-chip-active {
+    background: var(--amber-500);
+    color: white;
+    border-color: var(--amber-500);
+    box-shadow: 0 2px 8px hsl(43, 96%, 56% / 0.3);
+}
+
+.vocab-status-chip-archived {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.vocab-status-chip-archived.vocab-status-chip-active {
+    background: var(--muted-foreground);
+    color: white;
+    border-color: var(--muted-foreground);
+    box-shadow: 0 2px 8px hsl(20, 15%, 45% / 0.3);
+}
+
+/* Active Chip Styles */
+.vocab-active-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 9999px; /* Fully rounded pill shape */
+    border: 1.5px solid transparent;
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.vocab-active-chip:hover:not(.vocab-active-chip-active) {
+    background: hsl(36, 40%, 85% / 0.6);
+    border-color: hsl(20, 15%, 45% / 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px hsl(20 25% 15% / 0.1);
+}
+
+.vocab-active-chip-active {
+    background: #6B8E6B; /* Light green when active */
+    color: white;
+    border-color: #6B8E6B;
+    box-shadow: 0 2px 8px hsl(120, 20%, 50% / 0.3);
+}
+
 .vocab-status-btn {
     display: flex;
     align-items: center;
@@ -1857,6 +1956,56 @@ body {
         gap: 0.5rem;
     }
     
+    .vocab-status-chip {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Active chip for mobile - positioned in bottom right */
+    .vocab-active-chip-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        white-space: nowrap;
+    }
+    
+    /* Position Active chip in bottom right (below Check Later) */
+    .vocab-active-chip-bottom-right {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    
+    /* Chip styles for mobile */
+    .vocab-status-chip {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Active chip for mobile - positioned in bottom right */
+    .vocab-active-chip-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        white-space: nowrap;
+    }
+    
+    /* Position Active chip in bottom right (below Check Later) */
+    .vocab-active-chip-bottom-right {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    
+    /* Legacy button styles for backward compatibility */
     .vocab-status-btn {
         width: 100%;
         text-align: center;

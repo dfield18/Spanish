@@ -1734,12 +1734,12 @@ const UI = {
                         // OPTIMISTIC UI UPDATE - Update UI immediately for seamless feel
                         this.updateCardButtonStates(word.id, status);
                         
-                        // Deselect Active button when selecting a status
+                        // Deselect Active chip when selecting a status
                         const card = document.getElementById(`vocab-card-${word.id}`);
                         if (card) {
-                            const activeBtn = card.querySelector(`#active-btn-${word.id}`);
-                            if (activeBtn) {
-                                activeBtn.classList.remove('vocab-active-btn-active');
+                            const activeChip = card.querySelector(`#active-btn-${word.id}`);
+                            if (activeChip) {
+                                activeChip.classList.remove('vocab-active-chip-active');
                             }
                             // Update desktop toggle
                             const activeToggle = card.querySelector(`#active-toggle-${word.id}`);
@@ -1817,23 +1817,23 @@ const UI = {
         const card = document.getElementById(`vocab-card-${wordId}`);
         if (!card) return;
         
-        // Remove active class from all status buttons
-        card.querySelectorAll('.vocab-status-btn').forEach(btn => {
-            btn.classList.remove('vocab-status-btn-active');
+        // Remove active class from all status chips
+        card.querySelectorAll('.vocab-status-chip').forEach(chip => {
+            chip.classList.remove('vocab-status-chip-active');
         });
         
-        // Add active class to the selected button (if status is provided and not null)
+        // Add active class to the selected chip (if status is provided and not null)
         if (newStatus) {
-            const activeBtn = card.querySelector(`[data-status="${newStatus}"]`);
-            if (activeBtn) {
-                activeBtn.classList.add('vocab-status-btn-active');
+            const activeChip = card.querySelector(`[data-status="${newStatus}"]`);
+            if (activeChip) {
+                activeChip.classList.add('vocab-status-chip-active');
             }
         }
         
-        // Deselect Active button when a status is selected
-        const activeBtn = card.querySelector(`#active-btn-${wordId}`);
-        if (activeBtn && newStatus !== null) {
-            activeBtn.classList.remove('vocab-active-btn-active');
+        // Deselect Active chip when a status is selected
+        const activeChip = card.querySelector(`#active-btn-${wordId}`);
+        if (activeChip && newStatus !== null) {
+            activeChip.classList.remove('vocab-active-chip-active');
         }
         
         // Update card inactive state based on status if needed
@@ -1857,13 +1857,13 @@ const UI = {
         const word = AppState.words.find(w => w.id === wordId);
         const currentStatus = word ? (new VocabularyWord(word)).status : null;
         
-        // Update active button state - only highlight if isActive=true AND status is null
-        const activeBtn = card.querySelector(`#active-btn-${wordId}`);
-        if (activeBtn) {
+        // Update active chip state - only highlight if isActive=true AND status is null
+        const activeChip = card.querySelector(`#active-btn-${wordId}`);
+        if (activeChip) {
             if (isActive && currentStatus === null) {
-                activeBtn.classList.add('vocab-active-btn-active');
+                activeChip.classList.add('vocab-active-chip-active');
             } else {
-                activeBtn.classList.remove('vocab-active-btn-active');
+                activeChip.classList.remove('vocab-active-chip-active');
             }
         }
         
@@ -1873,10 +1873,10 @@ const UI = {
             activeToggle.checked = isActive;
         }
         
-        // Deselect all status buttons when Active is selected
+        // Deselect all status chips when Active is selected
         if (isActive && currentStatus === null) {
-            card.querySelectorAll('.vocab-status-btn').forEach(btn => {
-                btn.classList.remove('vocab-status-btn-active');
+            card.querySelectorAll('.vocab-status-chip').forEach(chip => {
+                chip.classList.remove('vocab-status-chip-active');
             });
         }
         
@@ -1934,31 +1934,31 @@ const UI = {
                     </div>
                 </div>
                 <div class="vocab-card-bottom-row">
-                    <button class="vocab-status-btn vocab-status-btn-review-now ${isReviewNow ? 'vocab-status-btn-active' : ''}" id="status-review-now-${vocabWord.id}" data-status="review-now">
-                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <button class="vocab-status-chip vocab-status-chip-review-now ${isReviewNow ? 'vocab-status-chip-active' : ''}" id="status-review-now-${vocabWord.id}" data-status="review-now">
+                        <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        ${STATUS_LABELS['review-now']}
+                        <span>${STATUS_LABELS['review-now']}</span>
                     </button>
-                    <button class="vocab-status-btn vocab-status-btn-check-later ${isCheckLater ? 'vocab-status-btn-active' : ''}" id="status-check-later-${vocabWord.id}" data-status="check-later">
-                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                        ${STATUS_LABELS['check-later']}
-                </button>
-                    <button class="vocab-status-btn vocab-status-btn-archived ${isArchived ? 'vocab-status-btn-active' : ''}" id="status-archived-${vocabWord.id}" data-status="archived">
-                        <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                        <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                        <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                        ${STATUS_LABELS['archived']}
-                </button>
-                    <button class="vocab-active-btn-mobile vocab-active-btn-bottom-right ${isActiveOnly ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
-                        Active
-                </button>
+                    <button class="vocab-status-chip vocab-status-chip-check-later ${isCheckLater ? 'vocab-status-chip-active' : ''}" id="status-check-later-${vocabWord.id}" data-status="check-later">
+                        <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>${STATUS_LABELS['check-later']}</span>
+                    </button>
+                    <button class="vocab-status-chip vocab-status-chip-archived ${isArchived ? 'vocab-status-chip-active' : ''}" id="status-archived-${vocabWord.id}" data-status="archived">
+                        <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>${STATUS_LABELS['archived']}</span>
+                    </button>
+                    <button class="vocab-active-chip vocab-active-chip-mobile vocab-active-chip-bottom-right ${isActiveOnly ? 'vocab-active-chip-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
+                        <span>Active</span>
+                    </button>
                 </div>
             </div>
         `;
