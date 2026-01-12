@@ -734,7 +734,7 @@ const UI = {
                 this.render();
             });
         }
-        
+
         // View filter dropdown (Mobile)
         const viewFilterDropdownMobile = document.getElementById('viewFilterDropdownMobile');
         if (viewFilterDropdownMobile) {
@@ -998,10 +998,10 @@ const UI = {
 
         // Disable button while processing
         if (btn) {
-            btn.disabled = true;
+        btn.disabled = true;
             btn.textContent = 'Adding...';
         }
-
+        
         // Split input by commas, newlines, or spaces
         // Filter out empty strings and trim each word
         const wordsToAdd = inputText
@@ -1013,7 +1013,7 @@ const UI = {
             statusEl.textContent = 'Please enter at least one word.';
             statusEl.className = 'status-message error';
             if (btn) {
-                btn.disabled = false;
+            btn.disabled = false;
                 btn.textContent = 'Add Word';
             }
             setTimeout(() => {
@@ -1139,7 +1139,7 @@ const UI = {
         
         // Re-enable button
         if (btn) {
-            btn.disabled = false;
+        btn.disabled = false;
             btn.textContent = 'Add Word';
         }
     },
@@ -1591,35 +1591,45 @@ const UI = {
                     e.stopPropagation();
                     const newActiveState = e.target.checked;
                     
-                    // If making inactive and status is "review-now", change status to "check-later"
-                    const updates = { isActive: newActiveState };
-                    if (!newActiveState && word.status === 'review-now') {
-                        updates.status = 'check-later';
-                        updates.reviewNow = false;
-                        updates.checkLater = true;
-                    }
-                    
-                    // Update storage
-                    const words = Storage.updateWord(word.id, updates);
-                    
-                    // Update only the specific word in AppState
-                    const wordIndex = AppState.words.findIndex(w => w.id === word.id);
-                    if (wordIndex !== -1) {
-                        AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
-                    }
-                    
-                    // Only update quiz words if we're on quiz view or if status changed from review-now
-                    if (AppState.currentView === 'quiz' || (!newActiveState && word.status === 'review-now')) {
-                        AppState.updateQuizWords();
-                    }
-                    
-                    // Update only the button and card state without re-rendering
+                    // OPTIMISTIC UI UPDATE - Update UI immediately
                     this.updateCardActiveState(word.id, newActiveState);
                     
-                    // If status changed, update status buttons too
+                    // If making inactive and status is "review-now", change status to "check-later"
                     if (!newActiveState && word.status === 'review-now') {
                         this.updateCardButtonStates(word.id, 'check-later');
                     }
+                    
+                    // Update AppState optimistically
+                    const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                    if (wordIndex !== -1) {
+                        const currentWord = AppState.words[wordIndex];
+                        currentWord.isActive = newActiveState;
+                        if (!newActiveState && currentWord.status === 'review-now') {
+                            currentWord.status = 'check-later';
+                            currentWord.reviewNow = false;
+                            currentWord.checkLater = true;
+                        }
+                    }
+                    
+                    // Defer storage update
+                    setTimeout(() => {
+                        const updates = { isActive: newActiveState };
+                        if (!newActiveState && word.status === 'review-now') {
+                            updates.status = 'check-later';
+                            updates.reviewNow = false;
+                            updates.checkLater = true;
+                        }
+                        
+                    const words = Storage.updateWord(word.id, updates);
+                        const syncWordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (syncWordIndex !== -1) {
+                            AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                        }
+                        
+                        if (AppState.currentView === 'quiz' || (!newActiveState && word.status === 'review-now')) {
+                    AppState.updateQuizWords();
+                        }
+                    }, 0);
                 });
             }
             
@@ -1631,59 +1641,79 @@ const UI = {
                     const newActiveState = !word.isActive;
                     
                     if (newActiveState) {
-                        // When selecting Active, clear all status buttons
-                        const updates = { 
-                            isActive: true,
-                            status: null, // Clear status
-                            reviewNow: false,
-                            checkLater: false,
-                            archived: false
-                        };
-                        
-                        // Update storage
-                        const words = Storage.updateWord(word.id, updates);
-                        
-                        // Update only the specific word in AppState
-                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
-                        if (wordIndex !== -1) {
-                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
-                        }
-                        
-                        // Only update quiz words if we're on quiz view (removing from quiz)
-                        if (AppState.currentView === 'quiz') {
-                            AppState.updateQuizWords();
-                        }
-                        
-                        // Update button states - deselect all status buttons, select Active
+                        // OPTIMISTIC UI UPDATE - Update UI immediately
+                        // Deselect all status buttons, select Active
                         this.updateCardButtonStates(word.id, null);
                         this.updateCardActiveState(word.id, true);
-                    } else {
-                        // When deselecting Active, set default status to "check-later"
-                        const updates = { 
-                            isActive: false,
-                            status: 'check-later',
-                            reviewNow: false,
-                            checkLater: true,
-                            archived: false
-                        };
                         
-                        // Update storage
-                        const words = Storage.updateWord(word.id, updates);
-                        
-                        // Update only the specific word in AppState
+                        // Update AppState optimistically
                         const wordIndex = AppState.words.findIndex(w => w.id === word.id);
                         if (wordIndex !== -1) {
-                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                            const currentWord = AppState.words[wordIndex];
+                            currentWord.isActive = true;
+                            currentWord.status = null;
+                            currentWord.reviewNow = false;
+                            currentWord.checkLater = false;
+                            currentWord.archived = false;
                         }
                         
-                        // Only update quiz words if we're on quiz view
-                        if (AppState.currentView === 'quiz') {
-                            AppState.updateQuizWords();
-                        }
-                        
-                        // Update button states - select Check Later, deselect Active
+                        // Defer storage update
+                        setTimeout(() => {
+                            const updates = { 
+                                isActive: true,
+                                status: null,
+                                reviewNow: false,
+                                checkLater: false,
+                                archived: false
+                            };
+                            
+                            const words = Storage.updateWord(word.id, updates);
+                            const syncWordIndex = AppState.words.findIndex(w => w.id === word.id);
+                            if (syncWordIndex !== -1) {
+                                AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                            }
+                            
+                            if (AppState.currentView === 'quiz') {
+                    AppState.updateQuizWords();
+                            }
+                        }, 0);
+                    } else {
+                        // OPTIMISTIC UI UPDATE - Update UI immediately
+                        // Select Check Later, deselect Active
                         this.updateCardButtonStates(word.id, 'check-later');
                         this.updateCardActiveState(word.id, false);
+                        
+                        // Update AppState optimistically
+                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (wordIndex !== -1) {
+                            const currentWord = AppState.words[wordIndex];
+                            currentWord.isActive = false;
+                            currentWord.status = 'check-later';
+                            currentWord.reviewNow = false;
+                            currentWord.checkLater = true;
+                            currentWord.archived = false;
+                        }
+                        
+                        // Defer storage update
+                        setTimeout(() => {
+                            const updates = { 
+                                isActive: false,
+                                status: 'check-later',
+                                reviewNow: false,
+                                checkLater: true,
+                                archived: false
+                            };
+                            
+                            const words = Storage.updateWord(word.id, updates);
+                            const syncWordIndex = AppState.words.findIndex(w => w.id === word.id);
+                            if (syncWordIndex !== -1) {
+                                AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                            }
+                            
+                            if (AppState.currentView === 'quiz') {
+                                AppState.updateQuizWords();
+                            }
+                        }, 0);
                     }
                 });
             }
@@ -1699,45 +1729,65 @@ const UI = {
                 const btn = document.getElementById(id);
                 if (btn) {
                     btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        // Update status and sync old flags for backward compatibility
-                        const updates = { 
-                            status: status,
-                            reviewNow: status === 'review-now',
-                            checkLater: status === 'check-later',
-                            archived: status === 'archived',
-                            review: status !== 'archived', // Keep review enabled unless archived
-                            isActive: true // When selecting a status, word becomes active
-                        };
+                    e.stopPropagation();
                         
-                        // Update storage
-                        const words = Storage.updateWord(word.id, updates);
-                        
-                        // Update only the specific word in AppState instead of recreating all
-                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
-                        if (wordIndex !== -1) {
-                            AppState.words[wordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
-                        }
-                        
-                        // Only update quiz words if we're on quiz view or if status affects quiz eligibility
-                        if (AppState.currentView === 'quiz' || status === 'review-now') {
-                            AppState.updateQuizWords();
-                        }
-                        
-                        // Update only the button states without re-rendering
+                        // OPTIMISTIC UI UPDATE - Update UI immediately for seamless feel
                         this.updateCardButtonStates(word.id, status);
                         
-                        // When selecting a status, Active button should not be visually selected
+                        // Deselect Active button when selecting a status
                         const card = document.getElementById(`vocab-card-${word.id}`);
                         if (card) {
                             const activeBtn = card.querySelector(`#active-btn-${word.id}`);
                             if (activeBtn) {
                                 activeBtn.classList.remove('vocab-active-btn-active');
                             }
+                            // Update desktop toggle
+                            const activeToggle = card.querySelector(`#active-toggle-${word.id}`);
+                            if (activeToggle) {
+                                activeToggle.checked = true;
+                            }
+                            // Remove inactive class
+                            card.classList.remove('vocab-card-inactive');
                         }
                         
-                        // Defer review badge update to avoid blocking UI
-                        requestAnimationFrame(() => {
+                        // Update AppState optimistically (before storage)
+                        const wordIndex = AppState.words.findIndex(w => w.id === word.id);
+                        if (wordIndex !== -1) {
+                            const currentWord = AppState.words[wordIndex];
+                            currentWord.status = status;
+                            currentWord.reviewNow = status === 'review-now';
+                            currentWord.checkLater = status === 'check-later';
+                            currentWord.archived = status === 'archived';
+                            currentWord.review = status !== 'archived';
+                            currentWord.isActive = true;
+                        }
+                        
+                        // Defer all heavy operations (storage, quiz updates, badge) to avoid blocking UI
+                        setTimeout(() => {
+                            const updates = { 
+                                status: status,
+                                reviewNow: status === 'review-now',
+                                checkLater: status === 'check-later',
+                                archived: status === 'archived',
+                                review: status !== 'archived',
+                                isActive: true
+                            };
+                            
+                            // Update storage (async)
+                            const words = Storage.updateWord(word.id, updates);
+                            
+                            // Sync AppState with storage result
+                            const syncWordIndex = AppState.words.findIndex(w => w.id === word.id);
+                            if (syncWordIndex !== -1) {
+                                AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === word.id));
+                            }
+                            
+                            // Only update quiz words if we're on quiz view or if status affects quiz eligibility
+                            if (AppState.currentView === 'quiz' || status === 'review-now') {
+                                AppState.updateQuizWords();
+                            }
+                            
+                            // Update review badge
                             const dueWords = AppState.words.filter(w => {
                                 return w.review && w.isDueForReview && w.isDueForReview() && w.status !== 'archived' && w.status !== 'check-later';
                             });
@@ -1746,7 +1796,7 @@ const UI = {
                             const badgeText = `${dueWords.length} due`;
                             if (reviewBadge) reviewBadge.textContent = badgeText;
                             if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
-                        });
+                        }, 0);
                     });
                 }
             });
@@ -1866,18 +1916,18 @@ const UI = {
                         <div class="vocab-active-toggle-wrapper">
                             <span class="vocab-active-label">Active</span>
                             <label class="vocab-active-toggle">
-                                <span class="toggle-switch">
-                                    <input 
-                                        type="checkbox" 
+                    <span class="toggle-switch">
+                        <input 
+                            type="checkbox" 
                                         id="active-toggle-${vocabWord.id}" 
                                         ${isActive ? 'checked' : ''}
-                                    >
-                                    <span class="toggle-slider"></span>
-                                </span>
-                            </label>
+                        >
+                        <span class="toggle-slider"></span>
+                    </span>
+                </label>
                         </div>
                         <button class="vocab-delete-btn" id="delete-word-${vocabWord.id}" title="Delete word">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M3 6H5H21M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
@@ -1892,23 +1942,23 @@ const UI = {
                     </button>
                     <button class="vocab-status-btn vocab-status-btn-check-later ${isCheckLater ? 'vocab-status-btn-active' : ''}" id="status-check-later-${vocabWord.id}" data-status="check-later">
                         <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                         ${STATUS_LABELS['check-later']}
-                    </button>
+                </button>
                     <button class="vocab-status-btn vocab-status-btn-archived ${isArchived ? 'vocab-status-btn-active' : ''}" id="status-archived-${vocabWord.id}" data-status="archived">
                         <svg class="status-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                            <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
+                        <path d="M4 6H20V20H4V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="7" y="8" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
                         ${STATUS_LABELS['archived']}
-                    </button>
+                </button>
                     <button class="vocab-active-btn-mobile vocab-active-btn-bottom-right ${isActiveOnly ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
                         Active
-                    </button>
+                </button>
                 </div>
             </div>
         `;
