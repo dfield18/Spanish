@@ -120,23 +120,6 @@ body {
     position: relative; /* For absolute positioning of mobile toggle */
 }
 
-.header-review-toggle-mobile {
-    display: none; /* Hidden on desktop */
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    align-items: center;
-    gap: 0.5rem;
-    z-index: 101;
-}
-
-.review-only-label-mobile {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--foreground);
-    white-space: nowrap;
-}
 
 .header-left {
     display: flex;
@@ -244,10 +227,6 @@ body {
     -webkit-backdrop-filter: blur(8px);
 }
 
-/* Mobile Filter Bar - Hidden on desktop */
-.mobile-filter-bar {
-    display: none;
-}
 
 /* Bottom Navigation - Hidden on desktop */
 .bottom-nav {
@@ -718,6 +697,11 @@ body {
 
 .vocab-active-toggle input:checked + .toggle-slider:before {
     transform: translateX(24px);
+}
+
+/* Hide mobile active button on desktop */
+.vocab-active-btn-mobile {
+    display: none;
 }
 
 .vocab-delete-btn {
@@ -1749,12 +1733,13 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .main-header {
-        flex-direction: column;
+        flex-direction: row;
         align-items: flex-start;
+        justify-content: space-between;
         gap: 0.75rem;
-        padding: 0.75rem 0;
-        padding-bottom: 1rem; /* Reduced space for mobile toggle */
-        margin-bottom: 0.25rem; /* Reduced margin */
+        padding: 0.75rem 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 0;
         position: fixed; /* Make header fixed on mobile */
         top: 0;
         left: 0;
@@ -1764,14 +1749,114 @@ body {
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         z-index: 1000; /* Higher z-index to stay on top */
-        padding-left: 1rem;
-        padding-right: 1rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .header-left {
+        flex: 1;
+        min-width: 0; /* Allow shrinking to make room for dropdown */
     }
 
     /* Hide desktop header nav on mobile */
     .header-nav {
         display: none;
+    }
+    
+    /* Mobile view dropdown in header - positioned top right */
+    .header-view-dropdown-mobile {
+        position: absolute;
+        top: 0.75rem;
+        right: 1rem;
+        width: auto;
+        min-width: 140px;
+    }
+    
+    .view-filter-dropdown-mobile {
+        width: 100%;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        background: var(--card);
+        border: 1px solid hsl(20, 15%, 45% / 0.15);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--foreground);
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.625rem center;
+        transition: all 0.2s ease;
+    }
+    
+    .view-filter-dropdown-mobile:hover {
+        border-color: hsl(20, 15%, 45% / 0.25);
+    }
+    
+    .view-filter-dropdown-mobile:focus {
+        outline: none;
+        border-color: var(--terracotta);
+        box-shadow: 0 0 0 3px hsl(15, 65%, 55% / 0.1);
+    }
+    
+    /* Hide active toggle on mobile */
+    .vocab-active-toggle-wrapper {
+        display: none;
+    }
+    
+    /* Ensure status buttons are equal size on mobile */
+    .vocab-card-bottom-row {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .vocab-status-btn {
+        flex: 1 1 0; /* Equal flex basis for equal sizing */
+        min-width: 0;
+        width: 0; /* Force equal width distribution */
+        text-align: center;
+        justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Active button for mobile */
+    .vocab-active-btn-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        border: none;
+        background: hsl(36, 40%, 80% / 0.5);
+        color: var(--muted-foreground);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1 1 0;
+        min-width: 0;
+        width: 0;
+        white-space: nowrap;
+    }
+    
+    .vocab-active-btn-mobile.vocab-active-btn-active {
+        background: #6B8E6B; /* Light green when active */
+        color: white;
+    }
+    
+    .vocab-active-btn-mobile:hover {
+        background: var(--muted);
+    }
+    
+    .vocab-active-btn-mobile.vocab-active-btn-active:hover {
+        background: #5a7a5a;
     }
 
     .quick-add-container {
@@ -1811,15 +1896,6 @@ body {
         display: none;
     }
     
-    /* Show mobile toggle in header */
-    .header-review-toggle-mobile {
-        display: flex !important;
-    }
-    
-    /* Hide review badge on mobile */
-    .header-review-toggle-mobile .review-badge {
-        display: none;
-    }
     
     .settings-label {
         font-size: 0.8125rem; /* Slightly smaller on mobile */
@@ -1865,85 +1941,6 @@ body {
         display: none;
     }
     
-    /* Show mobile filter bar */
-    .mobile-filter-bar {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        background: var(--card);
-        border-radius: 0.75rem;
-        margin-top: 0;
-        margin-bottom: 1rem;
-        box-shadow: var(--shadow-card);
-        position: sticky;
-        top: 120px; /* Position below fixed header */
-        z-index: 999; /* Below header but above content */
-    }
-    
-    .mobile-language-controls {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .mobile-lang-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        padding: 0.4rem 0.75rem;
-        background: var(--sand-dark);
-        border: none;
-        border-radius: 0.5rem;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .mobile-lang-btn.active {
-        background: white;
-        color: var(--foreground);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    
-    .mobile-view-chips {
-        display: flex;
-        gap: 0.5rem;
-        overflow-x: auto;
-        padding-bottom: 0.25rem;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Firefox */
-    }
-    
-    .mobile-view-chips::-webkit-scrollbar {
-        display: none; /* Chrome, Safari */
-    }
-    
-    .view-chip {
-        padding: 0.4rem 0.875rem;
-        background: var(--sand-dark);
-        border: none;
-        border-radius: 0.5rem;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-    
-    .view-chip.active {
-        background: var(--terracotta-status);
-        color: white;
-    }
-    
-    .view-chip:hover:not(.active) {
-        background: var(--sand);
-    }
     
     /* Bottom Navigation */
     .bottom-nav {
@@ -1991,7 +1988,7 @@ body {
     
     /* Add padding to body on mobile to account for fixed header and bottom nav */
     body {
-        padding-top: 120px; /* Space for fixed header */
+        padding-top: 110px; /* Space for fixed header (reduced since Review Only toggle removed) */
         padding-bottom: 70px; /* Space for bottom nav */
     }
     

@@ -703,28 +703,21 @@ const UI = {
             });
         });
 
-        // Review toggle
-        // Review Only toggle - sync both desktop and mobile toggles
+        // Review toggle (Desktop only)
         const reviewOnlyToggle = document.getElementById('reviewOnlyToggle');
-        const reviewOnlyToggleMobile = document.getElementById('reviewOnlyToggleMobile');
         
         const handleReviewToggle = (e) => {
             const isChecked = e.target.checked;
             AppState.reviewOnly = isChecked;
             AppState.saveSettings();
             
-            // Sync both toggles
             if (reviewOnlyToggle) reviewOnlyToggle.checked = isChecked;
-            if (reviewOnlyToggleMobile) reviewOnlyToggleMobile.checked = isChecked;
             
             this.render();
         };
         
         if (reviewOnlyToggle) {
             reviewOnlyToggle.addEventListener('change', handleReviewToggle);
-        }
-        if (reviewOnlyToggleMobile) {
-            reviewOnlyToggleMobile.addEventListener('change', handleReviewToggle);
         }
 
         // View filter dropdown (Desktop)
@@ -733,25 +726,21 @@ const UI = {
             viewFilterDropdown.addEventListener('change', (e) => {
                 AppState.viewFilter = e.target.value;
                 AppState.saveSettings();
-                this.updateViewChips();
+                this.syncViewDropdowns();
                 this.render();
             });
         }
         
-        // View chips (Mobile)
-        document.querySelectorAll('.view-chip').forEach(chip => {
-            chip.addEventListener('click', (e) => {
-                const view = e.currentTarget.dataset.view;
-                AppState.viewFilter = view;
+        // View filter dropdown (Mobile)
+        const viewFilterDropdownMobile = document.getElementById('viewFilterDropdownMobile');
+        if (viewFilterDropdownMobile) {
+            viewFilterDropdownMobile.addEventListener('change', (e) => {
+                AppState.viewFilter = e.target.value;
                 AppState.saveSettings();
-                // Update dropdown to match
-                if (viewFilterDropdown) {
-                    viewFilterDropdown.value = view;
-                }
-                this.updateViewChips();
+                this.syncViewDropdowns();
                 this.render();
             });
-        });
+        }
 
         // Modal controls
         document.getElementById('addWordBtn').addEventListener('click', () => {
@@ -974,15 +963,12 @@ const UI = {
         }
     },
     
-    updateViewChips() {
-        // Update view chips to reflect current filter
-        document.querySelectorAll('.view-chip').forEach(chip => {
-            if (chip.dataset.view === AppState.viewFilter) {
-                chip.classList.add('active');
-            } else {
-                chip.classList.remove('active');
-            }
-        });
+    syncViewDropdowns() {
+        // Sync desktop and mobile dropdowns
+        const viewFilterDropdown = document.getElementById('viewFilterDropdown');
+        const viewFilterDropdownMobile = document.getElementById('viewFilterDropdownMobile');
+        if (viewFilterDropdown) viewFilterDropdown.value = AppState.viewFilter;
+        if (viewFilterDropdownMobile) viewFilterDropdownMobile.value = AppState.viewFilter;
     },
 
     async handleQuickAddWord() {
@@ -1534,25 +1520,12 @@ const UI = {
             }, 100);
         }
 
-        // Update toggle states - sync both desktop and mobile
+        // Update toggle state (Desktop only)
         const reviewOnlyToggle = document.getElementById('reviewOnlyToggle');
-        const reviewOnlyToggleMobile = document.getElementById('reviewOnlyToggleMobile');
         if (reviewOnlyToggle) reviewOnlyToggle.checked = AppState.reviewOnly;
-        if (reviewOnlyToggleMobile) reviewOnlyToggleMobile.checked = AppState.reviewOnly;
-        const viewFilterDropdown = document.getElementById('viewFilterDropdown');
-        if (viewFilterDropdown) {
-            viewFilterDropdown.value = AppState.viewFilter;
-        }
         
-        // Update view chips and mobile language buttons
-        this.updateViewChips();
-        document.querySelectorAll('.mobile-lang-btn').forEach(btn => {
-            if (btn.dataset.lang === AppState.displayLanguage) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
+        // Sync view dropdowns
+        this.syncViewDropdowns();
         
         // Update segmented control
         document.querySelectorAll('.segmented-option').forEach(btn => {
@@ -1574,12 +1547,10 @@ const UI = {
             const vocabWord = new VocabularyWord(w);
             return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview() && vocabWord.status === 'review-now';
         });
-        // Update review badge - sync both desktop and mobile
+        // Update review badge (Desktop only)
         const reviewBadge = document.getElementById('reviewBadge');
-        const reviewBadgeMobile = document.getElementById('reviewBadgeMobile');
         const badgeText = `${dueWords.length} due`;
         if (reviewBadge) reviewBadge.textContent = badgeText;
-        if (reviewBadgeMobile) reviewBadgeMobile.textContent = badgeText;
 
         // Render vocabulary cards
         const list = document.getElementById('vocabularyList');
@@ -1600,12 +1571,24 @@ const UI = {
         
         // Attach event listeners
         filteredWords.forEach(word => {
-            // Attach active toggle listener
+            // Attach active toggle listener (Desktop)
             const activeToggle = document.getElementById(`active-toggle-${word.id}`);
             if (activeToggle) {
                 activeToggle.addEventListener('change', (e) => {
                     e.stopPropagation();
                     const words = Storage.updateWord(word.id, { isActive: e.target.checked });
+                    AppState.words = words.map(w => new VocabularyWord(w));
+                    this.render();
+                });
+            }
+            
+            // Attach active button listener (Mobile)
+            const activeBtn = document.getElementById(`active-btn-${word.id}`);
+            if (activeBtn) {
+                activeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const newActiveState = !word.isActive;
+                    const words = Storage.updateWord(word.id, { isActive: newActiveState });
                     AppState.words = words.map(w => new VocabularyWord(w));
                     this.render();
                 });
@@ -1726,6 +1709,9 @@ const UI = {
                             <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
                         ${STATUS_LABELS['archived']}
+                    </button>
+                    <button class="vocab-active-btn vocab-active-btn-mobile ${isActive ? 'vocab-active-btn-active' : ''}" id="active-btn-${vocabWord.id}" data-word-id="${vocabWord.id}">
+                        Active
                     </button>
                 </div>
             </div>

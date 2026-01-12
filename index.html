@@ -43,13 +43,14 @@
                 <button id="homeBtn" class="nav-tab active">Dashboard</button>
                 <button id="quizBtn" class="nav-tab">Quiz Mode</button>
             </nav>
-            <div class="header-review-toggle-mobile">
-                <span class="review-badge" id="reviewBadgeMobile">2 due</span>
-                <span class="review-only-label-mobile">Review Only</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="reviewOnlyToggleMobile">
-                    <span class="toggle-slider"></span>
-                </label>
+            <div class="header-view-dropdown-mobile">
+                <select id="viewFilterDropdownMobile" class="view-filter-dropdown-mobile">
+                    <option value="reviewNow" selected>Review Now</option>
+                    <option value="all">All Words</option>
+                    <option value="active">Active</option>
+                    <option value="archive">Archive</option>
+                    <option value="checkLater">Check Later</option>
+                </select>
             </div>
         </header>
 
@@ -92,25 +93,6 @@
                 </div>
             </div>
 
-            <!-- Mobile Filter Bar -->
-            <div class="mobile-filter-bar">
-                <div class="mobile-language-controls">
-                    <button class="mobile-lang-btn" data-lang="spanish">
-                        <span class="flag-icon">🇪🇸</span>
-                        <span>ES</span>
-                    </button>
-                    <button class="mobile-lang-btn active" data-lang="english">
-                        <span class="flag-icon">🇬🇧</span>
-                        <span>EN</span>
-                    </button>
-                </div>
-                <div class="mobile-view-chips">
-                    <button class="view-chip active" data-view="reviewNow">Review Now</button>
-                    <button class="view-chip" data-view="all">All</button>
-                    <button class="view-chip" data-view="archive">Archive</button>
-                    <button class="view-chip" data-view="checkLater">Check Later</button>
-                </div>
-            </div>
 
             <div class="quick-add-section">
                 <div class="quick-add-container">
