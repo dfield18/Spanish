@@ -2033,6 +2033,36 @@ body {
         min-width: 140px;
     }
     
+    /* Quiz filter dropdown in header - hidden by default, shown when in quiz view */
+    .header-quiz-filter-dropdown-mobile {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 0.75rem;
+        right: 1rem;
+        width: auto;
+        min-width: 140px;
+    }
+    
+    /* Show quiz filter dropdown on mobile when quiz view is active */
+    body.quiz-view-active .header-quiz-filter-dropdown-mobile {
+        display: block;
+    }
+    
+    /* Hide homepage dropdown when quiz view is active */
+    body.quiz-view-active .header-view-dropdown-mobile {
+        display: none;
+    }
+    
+    /* Show homepage dropdown when home view is active */
+    body.home-view-active .header-view-dropdown-mobile {
+        display: block;
+    }
+    
+    /* Hide quiz filter dropdown when home view is active */
+    body.home-view-active .header-quiz-filter-dropdown-mobile {
+        display: none;
+    }
+    
     .view-filter-dropdown-mobile {
         width: 100%;
         padding: 0.5rem 2rem 0.5rem 0.75rem;
@@ -2261,9 +2291,14 @@ body {
     }
 
     /* Quiz mode mobile optimizations */
+    /* Hide quiz header and controls on mobile */
     .quiz-header {
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.75rem;
+        display: none !important;
+    }
+    
+    /* Hide desktop quiz filter dropdown on mobile (mobile version is in header) */
+    .quiz-view-filter-dropdown {
+        display: none;
     }
     
     .quiz-header h2 {

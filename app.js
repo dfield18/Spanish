@@ -688,7 +688,10 @@ const UI = {
     init() {
         this.setupEventListeners();
         // Ensure correct initial view state
-        this.showView(AppState.currentView || 'home');
+        const initialView = AppState.currentView || 'home';
+        // Set initial body class
+        document.body.classList.add(initialView === 'quiz' ? 'quiz-view-active' : 'home-view-active');
+        this.showView(initialView);
     },
 
     setupEventListeners() {
@@ -897,6 +900,23 @@ const UI = {
             });
         }
         
+        // Mobile quiz filter dropdown in header
+        const quizViewFilterDropdownMobile = document.getElementById('quizViewFilterDropdownMobile');
+        if (quizViewFilterDropdownMobile) {
+            quizViewFilterDropdownMobile.addEventListener('change', (e) => {
+                AppState.quizViewFilter = e.target.value;
+                AppState.saveSettings();
+                AppState.currentQuizIndex = 0; // Reset to first word when filter changes
+                AppState.updateQuizWords();
+                this.renderQuiz();
+                
+                // Also sync desktop dropdown if it exists
+                if (quizViewFilterDropdown) {
+                    quizViewFilterDropdown.value = e.target.value;
+                }
+            });
+        }
+        
         document.getElementById('quizLanguageToggle').addEventListener('change', (e) => {
             AppState.displayLanguage = e.target.value;
             AppState.saveSettings();
@@ -998,8 +1018,12 @@ const UI = {
             btn.classList.remove('active');
         });
         
+        // Update body classes for mobile dropdown visibility
+        document.body.classList.remove('home-view-active', 'quiz-view-active');
+        
         // Then add active to the correct elements
         if (view === 'home') {
+            document.body.classList.add('home-view-active');
             if (homeView) homeView.classList.add('active');
             if (homeBtn) homeBtn.classList.add('active');
             if (bottomHomeBtn) bottomHomeBtn.classList.add('active');
@@ -1008,6 +1032,7 @@ const UI = {
             if (bottomQuizBtn) bottomQuizBtn.classList.remove('active');
             this.render();
         } else if (view === 'quiz') {
+            document.body.classList.add('quiz-view-active');
             if (quizView) quizView.classList.add('active');
             if (quizBtn) quizBtn.classList.add('active');
             if (bottomQuizBtn) bottomQuizBtn.classList.add('active');
@@ -2062,11 +2087,16 @@ const UI = {
         // Create handler function that will be attached to each button
         const createChipHandler = (status, chipElement) => {
             return (e) => {
+                console.log(`Quiz chip clicked: ${status}`, e.target);
+                
                 // Stop event from bubbling up
                 e.stopPropagation();
                 
                 // Make sure we're in quiz view and have quiz words
-                if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) return;
+                if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) {
+                    console.warn('Not in quiz view or no quiz words');
+                    return;
+                }
                 
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                 if (!currentWord) return;
@@ -2129,24 +2159,63 @@ const UI = {
             };
         };
         
-        // Remove old listeners and attach new ones directly to each button
-        // Using onclick ensures the handler is always attached and works reliably
+        // Attach handlers directly to each button
+        // Using onclick property for maximum compatibility
         if (reviewNowChip) {
             reviewNowChip.onclick = createChipHandler('review-now', reviewNowChip);
+            reviewNowChip.style.pointerEvents = 'auto'; // Ensure clicks are enabled
+        } else {
+            console.warn('Review Now chip not found');
         }
+        
         if (checkLaterChip) {
             checkLaterChip.onclick = createChipHandler('check-later', checkLaterChip);
+            checkLaterChip.style.pointerEvents = 'auto';
+        } else {
+            console.warn('Check Later chip not found');
         }
+        
         if (archivedChip) {
-            archivedChip.onclick = createChipHandler('archived', archivedChip);
+            // Ensure button is fully enabled and clickable
+            archivedChip.disabled = false;
+            archivedChip.style.pointerEvents = 'auto';
+            archivedChip.style.cursor = 'pointer';
+            archivedChip.setAttribute('tabindex', '0'); // Make it focusable
+            archivedChip.setAttribute('role', 'button');
+            archivedChip.setAttribute('aria-label', 'Archive word');
+            
+            // Attach handler using onclick (most reliable)
+            const archivedHandler = createChipHandler('archived', archivedChip);
+            archivedChip.onclick = archivedHandler;
+            
+            console.log('Archived chip handler attached successfully', archivedChip);
+        } else {
+            console.error('Archived chip not found! Element ID: quiz-status-archived');
+            // Try to find it again after a short delay in case DOM isn't ready
+            setTimeout(() => {
+                const retryChip = document.getElementById('quiz-status-archived');
+                if (retryChip) {
+                    console.log('Found archived chip on retry, attaching handler');
+                    retryChip.disabled = false;
+                    retryChip.style.pointerEvents = 'auto';
+                    retryChip.onclick = createChipHandler('archived', retryChip);
+                } else {
+                    console.error('Archived chip still not found after retry');
+                }
+            }, 100);
         }
     },
 
     renderQuiz() {
-        // Sync quiz filter dropdown
+        // Sync quiz filter dropdowns (desktop and mobile)
         const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
+        const quizViewFilterDropdownMobile = document.getElementById('quizViewFilterDropdownMobile');
+        const filterValue = AppState.quizViewFilter || 'reviewNow';
         if (quizViewFilterDropdown) {
-            quizViewFilterDropdown.value = AppState.quizViewFilter || 'reviewNow';
+            quizViewFilterDropdown.value = filterValue;
+        }
+        if (quizViewFilterDropdownMobile) {
+            quizViewFilterDropdownMobile.value = filterValue;
         }
         
         AppState.updateQuizWords();
