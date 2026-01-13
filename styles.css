@@ -2705,23 +2705,17 @@ body {
     }
     
     /* Make expandable sections narrower on mobile to avoid covering arrows */
-    /* Ensure quiz card back is hidden on front - mobile specific */
-    .quiz-card-back {
-        visibility: hidden !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
+    /* CRITICAL: Hide quiz card back when NOT flipped - mobile specific */
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        z-index: -1 !important;
     }
     
-    .quiz-card-flip-container.flipped .quiz-card-back {
-        visibility: visible !important;
-        pointer-events: auto !important;
-        opacity: 1 !important;
-        display: flex !important;
-    }
-    
-    /* Hide all children of quiz-card-back when not flipped */
-    .quiz-card-flip-container:not(.flipped) .quiz-card-back,
+    /* Hide ALL children of quiz-card-back when not flipped */
     .quiz-card-flip-container:not(.flipped) .quiz-card-back * {
         display: none !important;
         visibility: hidden !important;
@@ -2729,7 +2723,27 @@ body {
         pointer-events: none !important;
     }
     
-    /* Show expandable sections only when flipped */
+    /* Show quiz card back ONLY when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        position: absolute !important;
+        z-index: 1 !important;
+    }
+    
+    /* Hide quiz card front when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-front {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        z-index: -1 !important;
+    }
+    
+    /* Show expandable sections only when card is flipped */
     .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
         display: block !important;
         visibility: visible !important;

@@ -1091,21 +1091,54 @@ const UI = {
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
                 
+                // CRITICAL: Manage quizCardBack and quizCardFront visibility directly via inline styles
+                // This ensures they're hidden/shown correctly on mobile regardless of CSS
+                const quizCardBack = document.getElementById('quizCardBack');
+                const quizCardFront = document.getElementById('quizCardFront');
+                
+                if (quizCardBack) {
+                    if (isFlipped) {
+                        quizCardBack.style.display = 'flex';
+                        quizCardBack.style.visibility = 'visible';
+                        quizCardBack.style.opacity = '1';
+                    } else {
+                        quizCardBack.style.display = 'none';
+                        quizCardBack.style.visibility = 'hidden';
+                        quizCardBack.style.opacity = '0';
+                    }
+                }
+                
+                if (quizCardFront) {
+                    if (isFlipped) {
+                        quizCardFront.style.display = 'none';
+                        quizCardFront.style.visibility = 'hidden';
+                        quizCardFront.style.opacity = '0';
+                    } else {
+                        quizCardFront.style.display = 'flex';
+                        quizCardFront.style.visibility = 'visible';
+                        quizCardFront.style.opacity = '1';
+                    }
+                }
+                
                 // Show/hide example sentences and conjugations based on flip state
                 const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
                 const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                 
                 if (examplesSectionMobile) {
-                    // Only manage visibility when card is flipped - CSS handles hiding on front
+                    // Only manage visibility when card is flipped
                     if (isFlipped && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
                         // Card is flipped - show example sentences if they exist
                         examplesSectionMobile.classList.remove('hidden');
                         examplesSectionMobile.style.display = '';
+                        examplesSectionMobile.style.visibility = '';
+                        examplesSectionMobile.style.opacity = '';
                     } else {
-                        // Card is not flipped - ensure hidden (CSS + inline style for extra protection)
+                        // Card is not flipped - ensure hidden
                         examplesSectionMobile.classList.add('hidden');
                         examplesSectionMobile.style.display = 'none';
+                        examplesSectionMobile.style.visibility = 'hidden';
+                        examplesSectionMobile.style.opacity = '0';
                     }
                 }
                 
@@ -2569,6 +2602,21 @@ const UI = {
             quizCardFlipContainer.classList.remove('flipped');
         }
         
+        // CRITICAL: Ensure quizCardBack is hidden and quizCardFront is visible via inline styles
+        // This is the most reliable way to ensure the back doesn't show on mobile
+        const quizCardBack = document.getElementById('quizCardBack');
+        const quizCardFront = document.getElementById('quizCardFront');
+        if (quizCardBack) {
+            quizCardBack.style.display = 'none';
+            quizCardBack.style.visibility = 'hidden';
+            quizCardBack.style.opacity = '0';
+        }
+        if (quizCardFront) {
+            quizCardFront.style.display = 'flex';
+            quizCardFront.style.visibility = 'visible';
+            quizCardFront.style.opacity = '1';
+        }
+        
         // Reset hint display
         const quizShowHintText = document.getElementById('quizShowHintText');
         const quizHintMobile = document.getElementById('quizHintMobile');
@@ -2586,10 +2634,11 @@ const UI = {
         const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
         
         // Always hide example sentences section initially (on front of card)
-        // CSS handles visibility via quiz-card-back, but we also add hidden class as backup
         if (examplesSectionMobile) {
             examplesSectionMobile.classList.add('hidden');
             examplesSectionMobile.style.display = 'none';
+            examplesSectionMobile.style.visibility = 'hidden';
+            examplesSectionMobile.style.opacity = '0';
         }
         
         // Collapse example sentences content when navigating to new card
