@@ -2490,32 +2490,39 @@ body {
         transform: rotateY(180deg);
         /* Ensure back side is completely hidden when not flipped */
         visibility: hidden;
+        pointer-events: none; /* Prevent interaction when hidden */
     }
     
     .quiz-card-flip-container.flipped .quiz-card-front {
         transform: rotateY(-180deg);
         visibility: hidden;
+        pointer-events: none; /* Prevent interaction when hidden */
     }
     
     .quiz-card-flip-container.flipped .quiz-card-back {
         transform: rotateY(0deg);
         visibility: visible;
+        pointer-events: auto; /* Re-enable interaction when visible */
     }
     
-    /* Expandable sections on back */
+    /* Expandable sections on back - ensure they're never visible on front */
     .quiz-expandable-section {
         width: 100%;
         margin-top: 1rem;
     }
     
-    /* Hide example sentences section when card is not flipped */
+    /* Hide example sentences section when card is not flipped - multiple layers of protection */
     .quiz-card-flip-container:not(.flipped) .quiz-expandable-section {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
     /* Show example sentences section when card is flipped */
-    .quiz-card-flip-container.flipped .quiz-expandable-section {
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
         display: block;
+        visibility: visible;
+        opacity: 1;
     }
     
     .quiz-expandable-header {
