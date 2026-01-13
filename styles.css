@@ -2551,6 +2551,25 @@ body {
         opacity: 1 !important;
     }
     
+    /* CRITICAL: Show all children of quiz-card-back when flipped (desktop) */
+    .quiz-card-flip-container.flipped .quiz-card-back * {
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back #quizWordBack {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-header {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
     .quiz-expandable-header {
         width: 100%;
         display: flex;
@@ -2752,6 +2771,38 @@ body {
         pointer-events: auto !important;
         position: absolute !important;
         z-index: 1 !important;
+    }
+    
+    /* CRITICAL: Show ALL children of quiz-card-back when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back * {
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    /* Ensure specific elements are visible when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back #quizWordBack {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-header {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-content {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     /* Hide quiz card front when flipped */

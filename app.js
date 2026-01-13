@@ -1101,6 +1101,33 @@ const UI = {
                         quizCardBack.style.setProperty('display', 'flex', 'important');
                         quizCardBack.style.setProperty('visibility', 'visible', 'important');
                         quizCardBack.style.setProperty('opacity', '1', 'important');
+                        
+                        // CRITICAL: Show all children when flipped
+                        const quizWordBack = document.getElementById('quizWordBack');
+                        if (quizWordBack) {
+                            quizWordBack.style.setProperty('display', 'block', 'important');
+                            quizWordBack.style.setProperty('visibility', 'visible', 'important');
+                            quizWordBack.style.setProperty('opacity', '1', 'important');
+                        }
+                        
+                        // Show example sentences section if it exists and has content
+                        const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
+                        if (examplesSectionMobile && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+                            examplesSectionMobile.style.setProperty('display', 'block', 'important');
+                            examplesSectionMobile.style.setProperty('visibility', 'visible', 'important');
+                            examplesSectionMobile.style.setProperty('opacity', '1', 'important');
+                        }
+                        
+                        // Show conjugations section if it exists and word is a verb
+                        const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
+                        if (conjugationsSectionMobile) {
+                            const currentVocabWord = new VocabularyWord(currentWord);
+                            if (currentVocabWord.conjugations) {
+                                conjugationsSectionMobile.style.setProperty('display', 'block', 'important');
+                                conjugationsSectionMobile.style.setProperty('visibility', 'visible', 'important');
+                                conjugationsSectionMobile.style.setProperty('opacity', '1', 'important');
+                            }
+                        }
                     } else {
                         quizCardBack.style.setProperty('display', 'none', 'important');
                         quizCardBack.style.setProperty('visibility', 'hidden', 'important');
@@ -1120,38 +1147,8 @@ const UI = {
                     }
                 }
                 
-                // Show/hide example sentences and conjugations based on flip state
-                const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
-                const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
-                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
-                
-                if (examplesSectionMobile) {
-                    // Only manage visibility when card is flipped
-                    if (isFlipped && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
-                        // Card is flipped - show example sentences if they exist
-                        examplesSectionMobile.classList.remove('hidden');
-                        examplesSectionMobile.style.display = '';
-                        examplesSectionMobile.style.visibility = '';
-                        examplesSectionMobile.style.opacity = '';
-                    } else {
-                        // Card is not flipped - ensure hidden
-                        examplesSectionMobile.classList.add('hidden');
-                        examplesSectionMobile.style.display = 'none';
-                        examplesSectionMobile.style.visibility = 'hidden';
-                        examplesSectionMobile.style.opacity = '0';
-                    }
-                }
-                
-                if (conjugationsSectionMobile) {
-                    const currentVocabWord = new VocabularyWord(currentWord);
-                    if (isFlipped && currentVocabWord.conjugations) {
-                        // Card is flipped - show conjugations if word is a verb
-                        conjugationsSectionMobile.classList.remove('hidden');
-                    } else {
-                        // Card is not flipped - hide conjugations
-                        conjugationsSectionMobile.classList.add('hidden');
-                    }
-                }
+                // Note: Example sentences and conjugations visibility is now handled above
+                // when setting quizCardBack visibility, to ensure they're shown with !important
             });
         }
         
