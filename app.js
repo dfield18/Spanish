@@ -1090,16 +1090,29 @@ const UI = {
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
                 
-                // Show/hide example sentences based on flip state
+                // Show/hide example sentences and conjugations based on flip state
                 const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
+                const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                
                 if (examplesSectionMobile) {
-                    const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                     if (isFlipped && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
                         // Card is flipped - show example sentences if they exist
                         examplesSectionMobile.classList.remove('hidden');
                     } else {
                         // Card is not flipped - hide example sentences
                         examplesSectionMobile.classList.add('hidden');
+                    }
+                }
+                
+                if (conjugationsSectionMobile) {
+                    const currentVocabWord = new VocabularyWord(currentWord);
+                    if (isFlipped && currentVocabWord.conjugations) {
+                        // Card is flipped - show conjugations if word is a verb
+                        conjugationsSectionMobile.classList.remove('hidden');
+                    } else {
+                        // Card is not flipped - hide conjugations
+                        conjugationsSectionMobile.classList.add('hidden');
                     }
                 }
             });
@@ -2566,6 +2579,12 @@ const UI = {
         // Example sentences - only populate, don't show until card is flipped
         const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
         const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
+        
+        // Always hide example sentences section initially (on front of card)
+        if (examplesSectionMobile) {
+            examplesSectionMobile.classList.add('hidden');
+        }
+        
         if (currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
             // Always populate the content, but keep section hidden until flipped
             if (examplesContentMobile) {
@@ -2586,24 +2605,24 @@ const UI = {
                     </ul>
                 `;
             }
-            // Hide the section initially - it will show when card is flipped
-            if (examplesSectionMobile) {
-                examplesSectionMobile.classList.add('hidden');
-            }
         } else {
-            // No example sentences - hide the section
+            // No example sentences - ensure section is hidden
             if (examplesSectionMobile) {
                 examplesSectionMobile.classList.add('hidden');
             }
         }
         
-        // Conjugations (if verb)
+        // Conjugations (if verb) - only show on back of card when flipped
         const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
         const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');
+        
+        // Always hide conjugations section initially (on front of card)
+        if (conjugationsSectionMobile) {
+            conjugationsSectionMobile.classList.add('hidden');
+        }
+        
         if (currentVocabWord.conjugations) {
-            if (conjugationsSectionMobile) {
-                conjugationsSectionMobile.classList.remove('hidden');
-            }
+            // Populate conjugations content, but keep section hidden until card is flipped
             if (conjugationsContentMobile) {
                 const irregularForms = currentVocabWord.conjugations.irregularForms || [];
                 let conjugationsHtml = '';
@@ -2627,6 +2646,7 @@ const UI = {
                 conjugationsContentMobile.innerHTML = conjugationsHtml;
             }
         } else {
+            // No conjugations - ensure section is hidden
             if (conjugationsSectionMobile) {
                 conjugationsSectionMobile.classList.add('hidden');
             }
