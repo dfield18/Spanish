@@ -1717,17 +1717,22 @@ const UI = {
             // Attach active button listener (Mobile) - mutually exclusive with status buttons
             const activeBtn = document.getElementById(`active-btn-${word.id}`);
             if (activeBtn) {
+                // Ensure button is fully clickable
+                activeBtn.style.pointerEvents = 'auto';
+                activeBtn.style.cursor = 'pointer';
+                activeBtn.style.touchAction = 'manipulation';
+                if (activeBtn.disabled !== undefined) {
+                    activeBtn.disabled = false;
+                }
+                
                 activeBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    e.preventDefault();
+                    console.log('Active button clicked for word:', word.id, 'current isActive:', word.isActive);
                     const newActiveState = !word.isActive;
                     
                     if (newActiveState) {
-                        // OPTIMISTIC UI UPDATE - Update UI immediately
-                        // Deselect all status buttons, select Active
-                        this.updateCardButtonStates(word.id, null);
-                        this.updateCardActiveState(word.id, true);
-                        
-                        // Update AppState optimistically
+                        // Update AppState optimistically FIRST
                         const wordIndex = AppState.words.findIndex(w => w.id === word.id);
                         if (wordIndex !== -1) {
                             const currentWord = AppState.words[wordIndex];
@@ -1737,6 +1742,11 @@ const UI = {
                             currentWord.checkLater = false;
                             currentWord.archived = false;
                         }
+                        
+                        // OPTIMISTIC UI UPDATE - Update UI immediately after AppState update
+                        // Deselect all status buttons, select Active
+                        this.updateCardButtonStates(word.id, null);
+                        this.updateCardActiveState(word.id, true);
                         
                         // Defer storage update
                         setTimeout(() => {
@@ -1941,6 +1951,14 @@ const UI = {
         // Update active chip state - only highlight if isActive=true AND status is null
         const activeChip = card.querySelector(`#active-btn-${wordId}`);
         if (activeChip) {
+            // Ensure button is always clickable
+            activeChip.style.pointerEvents = 'auto';
+            activeChip.style.cursor = 'pointer';
+            activeChip.style.touchAction = 'manipulation';
+            if (activeChip.disabled !== undefined) {
+                activeChip.disabled = false;
+            }
+            
             if (isActive && currentStatus === null) {
                 activeChip.classList.add('vocab-active-chip-active');
             } else {
@@ -2092,6 +2110,7 @@ const UI = {
         const reviewNowChip = document.getElementById('quiz-status-review-now');
         const checkLaterChip = document.getElementById('quiz-status-check-later');
         const archivedChip = document.getElementById('quiz-status-archived');
+        const activeChip = document.getElementById('quiz-status-active');
         
         // Create handler function that will be attached to each button
         const createChipHandler = (status, chipElement) => {
@@ -2177,8 +2196,8 @@ const UI = {
                     }
                     
                     // Check if word will be filtered out after status change
-                    const wasInArchiveFilter = AppState.quizViewFilter === 'archive';
-                    const changingFromArchive = wasInArchiveFilter && status !== 'archived';
+                    const currentFilter = AppState.quizViewFilter;
+                    const oldStatus = currentWord.status;
                     
                     AppState.updateQuizWords();
                     
@@ -2195,25 +2214,55 @@ const UI = {
                         // Check if the current word (by ID) is still in the quiz list
                         const wordStillInQuiz = AppState.quizWords.some(w => w.id === currentWord.id);
                         
-                        if (!wordStillInQuiz && changingFromArchive) {
-                            // Word was changed from archived to review-now/check-later
-                            // Navigate to the appropriate filter to show the word
-                            if (status === 'review-now') {
-                                AppState.quizViewFilter = 'reviewNow';
-                            } else if (status === 'check-later') {
-                                AppState.quizViewFilter = 'checkLater';
+                        if (!wordStillInQuiz) {
+                            // Word was filtered out - switch to appropriate filter to keep word visible
+                            // BUT: if current filter is "all", word should still be visible, so don't switch
+                            if (currentFilter === 'all') {
+                                // In "all" filter, word should always be visible - re-update quiz words
+                                AppState.updateQuizWords();
+                                const wordIndex = AppState.quizWords.findIndex(w => w.id === currentWord.id);
+                                if (wordIndex !== -1) {
+                                    AppState.currentQuizIndex = wordIndex;
+                                }
+                                this.renderQuiz();
+                            } else {
+                                // Switch to appropriate filter based on new status
+                                let newFilter = currentFilter;
+                                
+                                if (status === 'review-now') {
+                                    newFilter = 'reviewNow';
+                                } else if (status === 'check-later') {
+                                    newFilter = 'checkLater';
+                                } else if (status === 'archived') {
+                                    newFilter = 'archive';
+                                } else if (status === 'active') {
+                                    newFilter = 'active';
+                                }
+                                
+                                // If filter changed, update and re-render
+                                if (newFilter !== currentFilter) {
+                                    AppState.quizViewFilter = newFilter;
+                                    AppState.saveSettings();
+                                    AppState.updateQuizWords();
+                                    
+                                    // Find the word in the new filter
+                                    const newWordIndex = AppState.quizWords.findIndex(w => w.id === currentWord.id);
+                                    if (newWordIndex !== -1) {
+                                        AppState.currentQuizIndex = newWordIndex;
+                                    } else {
+                                        // Word still not found - go to first word or show empty state
+                                        AppState.currentQuizIndex = AppState.quizWords.length > 0 ? 0 : -1;
+                                    }
+                                    this.renderQuiz();
+                                } else {
+                                    // Filter didn't change but word still not found - show next word
+                                    this.renderQuiz();
+                                }
                             }
-                            AppState.saveSettings();
-                            AppState.updateQuizWords();
-                            AppState.currentQuizIndex = AppState.quizWords.findIndex(w => w.id === currentWord.id);
-                            if (AppState.currentQuizIndex === -1) {
-                                AppState.currentQuizIndex = 0;
-                            }
-                            this.renderQuiz();
                         } else {
                             // Word is still in quiz - update chip states
                             const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
-                            if (updatedWord) {
+                            if (updatedWord && updatedWord.id === currentWord.id) {
                                 const updatedVocabWord = new VocabularyWord(updatedWord);
                                 const updatedStatus = updatedVocabWord.status;
                                 const isActiveOnly = updatedVocabWord.isActive && updatedStatus === null;
@@ -2227,7 +2276,7 @@ const UI = {
                                     }
                                 });
                             } else {
-                                // Word was filtered out - re-render to show next word or empty state
+                                // Word index changed - re-render to show correct word
                                 this.renderQuiz();
                             }
                         }
