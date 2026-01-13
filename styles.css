@@ -2535,6 +2535,23 @@ body {
         transition: background 0.2s;
     }
     
+    /* On mobile, make expandable sections narrower to avoid covering arrows */
+    @media (max-width: 768px) {
+        .quiz-expandable-section {
+            width: calc(100% - 4rem); /* Leave space for arrows (2rem on each side) */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .quiz-expandable-header {
+            width: 100%;
+        }
+        
+        .quiz-expandable-content {
+            width: 100%;
+        }
+    }
+    
     .quiz-expandable-header:hover {
         background: hsl(20, 15%, 45% / 0.1);
     }
@@ -2648,6 +2665,9 @@ body {
     }
 
     .quiz-card {
+        width: 90%; /* 10% narrower than full width */
+        margin-left: auto;
+        margin-right: auto;
         padding: 2rem 1.5rem 5rem 1.5rem; /* Extra bottom padding for status chips */
         margin-top: 1rem; /* Reduced space for mobile header */
         position: relative;
@@ -2669,6 +2689,14 @@ body {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
         text-align: center;
+        padding: 0 3rem; /* Space for arrows */
+    }
+    
+    /* Make expandable sections narrower on mobile to avoid covering arrows */
+    .quiz-expandable-section {
+        width: calc(100% - 4rem); /* Leave space for arrows (2rem on each side) */
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .quiz-translation {

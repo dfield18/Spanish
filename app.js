@@ -2624,24 +2624,26 @@ const UI = {
         if (currentVocabWord.conjugations) {
             // Populate conjugations content, but keep section hidden until card is flipped
             if (conjugationsContentMobile) {
+                const tenses = ['present', 'preterite', 'imperfect', 'conditional', 'subjunctive', 'future'];
+                const persons = ['yo', 'tú', 'él/ella/usted', 'nosotros', 'vosotros', 'ellos/ellas/ustedes'];
                 const irregularForms = currentVocabWord.conjugations.irregularForms || [];
                 let conjugationsHtml = '';
                 
-                if (irregularForms.length > 0) {
-                    conjugationsHtml = '<div class="irregular-forms"><strong>Irregular Forms:</strong><ul>';
-                    irregularForms.forEach(form => {
-                        conjugationsHtml += `<li>${this.escapeHtml(form)}</li>`;
-                    });
-                    conjugationsHtml += '</ul></div>';
-                }
-                
-                if (currentVocabWord.conjugations.present) {
-                    conjugationsHtml += '<div class="conjugation-tense"><strong>Present:</strong><ul>';
-                    Object.entries(currentVocabWord.conjugations.present).forEach(([person, form]) => {
-                        conjugationsHtml += `<li><strong>${person}:</strong> ${this.escapeHtml(form)}</li>`;
-                    });
-                    conjugationsHtml += '</ul></div>';
-                }
+                // Show all tenses
+                tenses.forEach(tense => {
+                    if (currentVocabWord.conjugations[tense]) {
+                        conjugationsHtml += `<div class="conjugation-tense"><strong>${tense.charAt(0).toUpperCase() + tense.slice(1)}:</strong><ul>`;
+                        persons.forEach(person => {
+                            const form = currentVocabWord.conjugations[tense][person];
+                            if (form) {
+                                const isIrregular = irregularForms.includes(person);
+                                const className = isIrregular ? 'irregular' : '';
+                                conjugationsHtml += `<li class="${className}"><strong>${person}:</strong> ${this.escapeHtml(form)}</li>`;
+                            }
+                        });
+                        conjugationsHtml += '</ul></div>';
+                    }
+                });
                 
                 conjugationsContentMobile.innerHTML = conjugationsHtml;
             }
