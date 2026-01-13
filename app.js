@@ -2160,50 +2160,27 @@ const UI = {
         };
         
         // Attach handlers directly to each button
-        // Using onclick property for maximum compatibility
-        if (reviewNowChip) {
-            reviewNowChip.onclick = createChipHandler('review-now', reviewNowChip);
-            reviewNowChip.style.pointerEvents = 'auto'; // Ensure clicks are enabled
-        } else {
-            console.warn('Review Now chip not found');
-        }
+        // Using onclick property for maximum compatibility - same approach for all buttons
+        const attachChipHandler = (chip, status) => {
+            if (!chip) {
+                console.warn(`${status} chip not found`);
+                return;
+            }
+            // Remove any existing onclick handler first
+            chip.onclick = null;
+            // Attach new handler
+            chip.onclick = createChipHandler(status, chip);
+            chip.style.pointerEvents = 'auto';
+            chip.style.cursor = 'pointer';
+            // Ensure button is enabled
+            if (chip.disabled !== undefined) {
+                chip.disabled = false;
+            }
+        };
         
-        if (checkLaterChip) {
-            checkLaterChip.onclick = createChipHandler('check-later', checkLaterChip);
-            checkLaterChip.style.pointerEvents = 'auto';
-        } else {
-            console.warn('Check Later chip not found');
-        }
-        
-        if (archivedChip) {
-            // Ensure button is fully enabled and clickable
-            archivedChip.disabled = false;
-            archivedChip.style.pointerEvents = 'auto';
-            archivedChip.style.cursor = 'pointer';
-            archivedChip.setAttribute('tabindex', '0'); // Make it focusable
-            archivedChip.setAttribute('role', 'button');
-            archivedChip.setAttribute('aria-label', 'Archive word');
-            
-            // Attach handler using onclick (most reliable)
-            const archivedHandler = createChipHandler('archived', archivedChip);
-            archivedChip.onclick = archivedHandler;
-            
-            console.log('Archived chip handler attached successfully', archivedChip);
-        } else {
-            console.error('Archived chip not found! Element ID: quiz-status-archived');
-            // Try to find it again after a short delay in case DOM isn't ready
-            setTimeout(() => {
-                const retryChip = document.getElementById('quiz-status-archived');
-                if (retryChip) {
-                    console.log('Found archived chip on retry, attaching handler');
-                    retryChip.disabled = false;
-                    retryChip.style.pointerEvents = 'auto';
-                    retryChip.onclick = createChipHandler('archived', retryChip);
-                } else {
-                    console.error('Archived chip still not found after retry');
-                }
-            }, 100);
-        }
+        attachChipHandler(reviewNowChip, 'review-now');
+        attachChipHandler(checkLaterChip, 'check-later');
+        attachChipHandler(archivedChip, 'archived');
     },
 
     renderQuiz() {
