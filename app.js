@@ -1090,6 +1090,9 @@ const UI = {
                     return;
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
+                console.log('=== Card flip toggled ===');
+                console.log('isFlipped:', isFlipped);
+                console.log('quizCardFlipContainer has flipped class:', quizCardFlipContainer.classList.contains('flipped'));
                 
                 // CRITICAL: Manage quizCardBack and quizCardFront visibility directly via inline styles
                 // This ensures they're hidden/shown correctly on mobile regardless of CSS
@@ -1097,6 +1100,16 @@ const UI = {
                 const quizCardFront = document.getElementById('quizCardFront');
                 
                 if (quizCardBack) {
+                    const examplesSection = quizCardBack.querySelector('#quizExampleSentencesMobile');
+                    if (examplesSection) {
+                        console.log('Example Sentences on flip:', {
+                            isFlipped,
+                            display: window.getComputedStyle(examplesSection).display,
+                            parentDisplay: window.getComputedStyle(quizCardBack).display,
+                            flippedClass: quizCardFlipContainer.classList.contains('flipped')
+                        });
+                    }
+                    
                     if (isFlipped) {
                         quizCardBack.style.setProperty('display', 'flex', 'important');
                         quizCardBack.style.setProperty('visibility', 'visible', 'important');
@@ -1145,9 +1158,28 @@ const UI = {
                             }
                         }
                     } else {
+                        console.log('Hiding back card (not flipped)');
                         quizCardBack.style.setProperty('display', 'none', 'important');
                         quizCardBack.style.setProperty('visibility', 'hidden', 'important');
                         quizCardBack.style.setProperty('opacity', '0', 'important');
+                        
+                        // Also hide all children
+                        const allBackChildren = quizCardBack.querySelectorAll('*');
+                        allBackChildren.forEach(child => {
+                            if (child.id === 'quizExampleSentencesMobile') {
+                                console.log('Hiding Example Sentences in flip handler');
+                            }
+                            child.style.setProperty('display', 'none', 'important');
+                            child.style.setProperty('visibility', 'hidden', 'important');
+                            child.style.setProperty('opacity', '0', 'important');
+                        });
+                        
+                        if (examplesSection) {
+                            console.log('Example Sentences after hiding in flip:', {
+                                display: window.getComputedStyle(examplesSection).display,
+                                parentDisplay: window.getComputedStyle(quizCardBack).display
+                            });
+                        }
                     }
                 }
                 
@@ -2546,17 +2578,64 @@ const UI = {
     },
 
     renderQuiz() {
+        console.log('=== renderQuiz() called ===');
         // CRITICAL: Set card visibility FIRST before anything else to prevent flash
         const quizCardBack = document.getElementById('quizCardBack');
         const quizCardFront = document.getElementById('quizCardFront');
         const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
         
+        console.log('quizCardBack exists:', !!quizCardBack);
+        console.log('quizCardFront exists:', !!quizCardFront);
+        console.log('quizCardFlipContainer exists:', !!quizCardFlipContainer);
+        
         // Immediately hide back and show front to prevent Example Sentences from showing
         // Use setProperty with 'important' flag to override CSS !important rules
         if (quizCardBack) {
+            const examplesSection = quizCardBack.querySelector('#quizExampleSentencesMobile');
+            console.log('Example Sentences section found:', !!examplesSection);
+            if (examplesSection) {
+                console.log('Example Sentences before hide:', {
+                    display: window.getComputedStyle(examplesSection).display,
+                    visibility: window.getComputedStyle(examplesSection).visibility,
+                    opacity: window.getComputedStyle(examplesSection).opacity,
+                    zIndex: window.getComputedStyle(examplesSection).zIndex
+                });
+            }
+            
             quizCardBack.style.setProperty('display', 'none', 'important');
             quizCardBack.style.setProperty('visibility', 'hidden', 'important');
             quizCardBack.style.setProperty('opacity', '0', 'important');
+            
+            console.log('quizCardBack styles set:', {
+                display: quizCardBack.style.display,
+                visibility: quizCardBack.style.visibility,
+                opacity: quizCardBack.style.opacity
+            });
+            
+            // CRITICAL: Explicitly hide ALL children immediately to prevent flash
+            const allBackChildren = quizCardBack.querySelectorAll('*');
+            console.log('Number of back children to hide:', allBackChildren.length);
+            allBackChildren.forEach((child, index) => {
+                if (child.id === 'quizExampleSentencesMobile') {
+                    console.log('Hiding Example Sentences section:', {
+                        id: child.id,
+                        className: child.className,
+                        beforeDisplay: window.getComputedStyle(child).display
+                    });
+                }
+                child.style.setProperty('display', 'none', 'important');
+                child.style.setProperty('visibility', 'hidden', 'important');
+                child.style.setProperty('opacity', '0', 'important');
+                
+                if (child.id === 'quizExampleSentencesMobile') {
+                    console.log('Example Sentences after hide:', {
+                        display: child.style.display,
+                        visibility: child.style.visibility,
+                        opacity: child.style.opacity,
+                        computedDisplay: window.getComputedStyle(child).display
+                    });
+                }
+            });
         }
         if (quizCardFront) {
             quizCardFront.style.setProperty('display', 'flex', 'important');
@@ -2618,6 +2697,9 @@ const UI = {
         const englishWord = currentWord.english;
         const spanishWord = currentWord.spanish;
         
+        // Create VocabularyWord instance early so it can be used throughout the function
+        const currentVocabWord = new VocabularyWord(currentWord);
+        
         // Front of card: Show English
         const quizWordFront = document.getElementById('quizWord');
         if (quizWordFront) {
@@ -2631,19 +2713,126 @@ const UI = {
         }
         
         // Card visibility is already set at the start of renderQuiz() - ensure it's still correct
+        console.log('=== Setting card visibility after content population ===');
         if (quizCardBack) {
+            const examplesSection = quizCardBack.querySelector('#quizExampleSentencesMobile');
+            if (examplesSection) {
+                console.log('Example Sentences section state before second hide:', {
+                    display: window.getComputedStyle(examplesSection).display,
+                    visibility: window.getComputedStyle(examplesSection).visibility,
+                    opacity: window.getComputedStyle(examplesSection).opacity,
+                    parentDisplay: window.getComputedStyle(quizCardBack).display,
+                    parentVisibility: window.getComputedStyle(quizCardBack).visibility
+                });
+            }
+            
+            // CRITICAL: Hide the entire back card and ensure it's behind the front
             quizCardBack.style.setProperty('display', 'none', 'important');
             quizCardBack.style.setProperty('visibility', 'hidden', 'important');
             quizCardBack.style.setProperty('opacity', '0', 'important');
+            quizCardBack.style.setProperty('z-index', '-10', 'important');
+            quizCardBack.style.setProperty('position', 'absolute', 'important');
+            
+            console.log('quizCardBack styles after second set:', {
+                display: quizCardBack.style.display,
+                computedDisplay: window.getComputedStyle(quizCardBack).display,
+                computedVisibility: window.getComputedStyle(quizCardBack).visibility
+            });
+            
+            // CRITICAL: Explicitly hide ALL children of quizCardBack to prevent Example Sentences from showing
+            const allBackChildren = quizCardBack.querySelectorAll('*');
+            console.log('Hiding back children again, count:', allBackChildren.length);
+            allBackChildren.forEach((child, index) => {
+                if (child.id === 'quizExampleSentencesMobile') {
+                    console.log('Example Sentences before second hide:', {
+                        display: window.getComputedStyle(child).display,
+                        parentDisplay: window.getComputedStyle(quizCardBack).display
+                    });
+                }
+                child.style.setProperty('display', 'none', 'important');
+                child.style.setProperty('visibility', 'hidden', 'important');
+                child.style.setProperty('opacity', '0', 'important');
+                child.style.setProperty('z-index', '-10', 'important');
+                
+                if (child.id === 'quizExampleSentencesMobile') {
+                    console.log('Example Sentences after second hide:', {
+                        inlineDisplay: child.style.display,
+                        computedDisplay: window.getComputedStyle(child).display,
+                        parentDisplay: window.getComputedStyle(quizCardBack).display
+                    });
+                }
+            });
         }
         if (quizCardFront) {
+            // Ensure front is on top
+            quizCardFront.style.setProperty('z-index', '10', 'important');
             quizCardFront.style.setProperty('display', 'flex', 'important');
             quizCardFront.style.setProperty('visibility', 'visible', 'important');
             quizCardFront.style.setProperty('opacity', '1', 'important');
+            console.log('quizCardFront z-index set to 10');
         }
         if (quizCardFlipContainer) {
             quizCardFlipContainer.classList.remove('flipped');
         }
+        
+        // Final check after all operations
+        setTimeout(() => {
+            const finalExamplesSection = document.getElementById('quizExampleSentencesMobile');
+            const finalQuizCardBack = document.getElementById('quizCardBack');
+            const finalQuizCardFront = document.getElementById('quizCardFront');
+            
+            // Check if element exists in DOM and where it is
+            const allExampleSentences = document.querySelectorAll('[id="quizExampleSentencesMobile"]');
+            console.log('=== FINAL CHECK (after 100ms) ===');
+            console.log('Number of Example Sentences elements found:', allExampleSentences.length);
+            
+            allExampleSentences.forEach((el, index) => {
+                console.log(`Example Sentences element ${index}:`, {
+                    id: el.id,
+                    parentId: el.parentElement?.id,
+                    parentClass: el.parentElement?.className,
+                    display: window.getComputedStyle(el).display,
+                    visibility: window.getComputedStyle(el).visibility,
+                    opacity: window.getComputedStyle(el).opacity,
+                    position: window.getComputedStyle(el).position,
+                    zIndex: window.getComputedStyle(el).zIndex,
+                    isInBack: el.closest('#quizCardBack') !== null,
+                    isInFront: el.closest('#quizCardFront') !== null,
+                    inlineStyles: {
+                        display: el.style.display,
+                        visibility: el.style.visibility,
+                        opacity: el.style.opacity
+                    }
+                });
+            });
+            
+            if (finalExamplesSection && finalQuizCardBack) {
+                console.log('Example Sentences final state:', {
+                    display: window.getComputedStyle(finalExamplesSection).display,
+                    visibility: window.getComputedStyle(finalExamplesSection).visibility,
+                    opacity: window.getComputedStyle(finalExamplesSection).opacity,
+                    parentDisplay: window.getComputedStyle(finalQuizCardBack).display,
+                    parentVisibility: window.getComputedStyle(finalQuizCardBack).visibility,
+                    parentOpacity: window.getComputedStyle(finalQuizCardBack).opacity,
+                    isVisible: window.getComputedStyle(finalExamplesSection).display !== 'none',
+                    boundingRect: finalExamplesSection.getBoundingClientRect(),
+                    isActuallyVisible: finalExamplesSection.getBoundingClientRect().height > 0 || finalExamplesSection.getBoundingClientRect().width > 0
+                });
+            }
+            
+            // Check front card for any Example Sentences elements
+            if (finalQuizCardFront) {
+                const examplesInFront = finalQuizCardFront.querySelectorAll('.quiz-expandable-section, #quizExampleSentencesMobile');
+                console.log('Example Sentences elements found in FRONT card:', examplesInFront.length);
+                examplesInFront.forEach((el, index) => {
+                    console.log(`Front card Example Sentences ${index}:`, {
+                        id: el.id,
+                        className: el.className,
+                        display: window.getComputedStyle(el).display
+                    });
+                });
+            }
+        }, 100);
         
         // Reset hint display
         const quizShowHintText = document.getElementById('quizShowHintText');
@@ -2768,7 +2957,7 @@ const UI = {
         }
         
         // Update quiz toggles
-        const currentVocabWord = new VocabularyWord(currentWord);
+        // Note: currentVocabWord is already declared earlier in the function
         const quizReviewToggle = document.getElementById('quizReviewToggle');
         const quizReviewNowToggle = document.getElementById('quizReviewNowToggle');
         if (quizReviewToggle) {

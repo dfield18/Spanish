@@ -2481,10 +2481,21 @@ body {
         justify-content: center;
     }
     
+    /* CRITICAL: Ensure back face children are not visible when parent is hidden */
+    .quiz-card-back:not(.visible) *,
+    .quiz-card-back[style*="display: none"] *,
+    .quiz-card-back[style*="display:none"] * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
     /* Front face: show by default */
     .quiz-card-front {
         transform: rotateY(0deg);
         display: flex;
+        z-index: 10; /* Ensure front is on top when not flipped */
     }
     
     /* Back face: ALWAYS hidden by default - only show when flipped */
@@ -2494,6 +2505,12 @@ body {
         visibility: hidden !important;
         pointer-events: none !important;
         opacity: 0 !important;
+        z-index: -10 !important; /* Ensure back is behind front when not flipped */
+        position: absolute !important; /* Ensure absolute positioning */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
     }
     
     /* Only show back when flipped - must come AFTER the default hide rule */
@@ -2533,6 +2550,68 @@ body {
     .quiz-expandable-section {
         width: 100%;
         margin-top: 1rem;
+    }
+    
+    /* CRITICAL: Hide ALL expandable sections by default - only show when explicitly flipped */
+    .quiz-card-back .quiz-expandable-section {
+        display: none !important;
+    }
+    
+    /* Only show expandable sections when card is flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
+        display: block !important;
+    }
+    
+    /* CRITICAL: Hide example sentences section when card is NOT flipped */
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back #quizExampleSentencesMobile,
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back .quiz-expandable-section,
+    /* Also hide when parent is hidden */
+    .quiz-card-back:not(:has(.quiz-card-flip-container.flipped)) #quizExampleSentencesMobile,
+    /* Hide by default - only show when explicitly flipped */
+    #quizExampleSentencesMobile {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        z-index: -9999 !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        clip-path: inset(100%) !important;
+        transform: scale(0) !important;
+    }
+    
+    /* CRITICAL: When parent is hidden, ensure children are completely removed from flow */
+    .quiz-card-back[style*="display: none"],
+    .quiz-card-back[style*="display:none"] {
+        display: none !important;
+    }
+    
+    .quiz-card-back[style*="display: none"] *,
+    .quiz-card-back[style*="display:none"] * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        clip-path: inset(100%) !important;
+    }
+    
+    /* Only show when card is flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back #quizExampleSentencesMobile {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        position: relative !important;
+        z-index: auto !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
     }
     
     /* Hide example sentences section when card is not flipped - multiple layers of protection */
