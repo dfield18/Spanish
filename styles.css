@@ -2374,13 +2374,8 @@ body {
         display: none;
     }
     
-    /* Show Hint Button */
-    .quiz-show-hint-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        background: none;
-        border: none;
+    /* Show Hint Text */
+    .quiz-show-hint-text {
         color: var(--terracotta);
         font-family: 'Inter', sans-serif;
         font-size: 0.875rem;
@@ -2388,6 +2383,36 @@ body {
         cursor: pointer;
         padding: 0.5rem 0;
         margin-bottom: 0.5rem;
+        text-decoration: underline;
+        user-select: none;
+    }
+    
+    .quiz-show-hint-text:active {
+        opacity: 0.7;
+    }
+    
+    /* Hint Content Container */
+    .quiz-hint-mobile {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: hsl(20, 15%, 45% / 0.05);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        color: var(--foreground);
+    }
+    
+    .quiz-hint-mobile p {
+        margin: 0.5rem 0;
+    }
+    
+    .quiz-hint-mobile p:first-child {
+        margin-top: 0;
+    }
+    
+    .quiz-hint-mobile p:last-child {
+        margin-bottom: 0;
     }
     
     /* Flip Instruction */

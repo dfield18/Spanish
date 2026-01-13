@@ -957,28 +957,29 @@ const UI = {
         }
         
         // Mobile quiz navigation arrows
-        // Show hint button
-        const quizShowHintBtn = document.getElementById('quizShowHintBtn');
-        if (quizShowHintBtn) {
-            quizShowHintBtn.addEventListener('click', () => {
+        // Show hint text
+        const quizShowHintText = document.getElementById('quizShowHintText');
+        if (quizShowHintText) {
+            quizShowHintText.addEventListener('click', () => {
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                 if (currentWord) {
-                    const hintContainer = document.getElementById('quizHint');
+                    const hintContainer = document.getElementById('quizHintMobile');
                     if (hintContainer) {
                         if (hintContainer.classList.contains('hidden')) {
                             // Show hint
                             const vocabWord = new VocabularyWord(currentWord);
-                            if (vocabWord.mnemonics && vocabWord.mnemonics.length > 0) {
-                                hintContainer.innerHTML = vocabWord.mnemonics.join('<br>');
+                            const hints = vocabWord.hint || [];
+                            if (hints.length > 0) {
+                                hintContainer.innerHTML = hints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
                             } else {
-                                hintContainer.innerHTML = 'No hint available';
+                                hintContainer.innerHTML = '<p>No hint available</p>';
                             }
                             hintContainer.classList.remove('hidden');
-                            quizShowHintBtn.querySelector('span').textContent = 'Hide hint';
+                            quizShowHintText.textContent = 'Hide hint';
                         } else {
                             // Hide hint
                             hintContainer.classList.add('hidden');
-                            quizShowHintBtn.querySelector('span').textContent = 'Show hint';
+                            quizShowHintText.textContent = 'Show hint';
                         }
                     }
                 }
@@ -1062,7 +1063,8 @@ const UI = {
         if (quizCardFlipContainer) {
             quizCardFlipContainer.addEventListener('click', (e) => {
                 // Don't flip if clicking on buttons or expandable headers
-                if (e.target.closest('.quiz-show-hint-btn') || 
+                if (e.target.closest('.quiz-show-hint-text') || 
+                    e.target.closest('.quiz-hint-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
                     e.target.closest('.quiz-status-chip')) {
                     return;
@@ -1072,6 +1074,21 @@ const UI = {
         }
         
         // Mobile expandable sections handlers
+        const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
+        if (quizExamplesBtnMobile) {
+            quizExamplesBtnMobile.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const content = document.getElementById('quiz-examples-content-mobile');
+                const icon = quizExamplesBtnMobile.querySelector('.toggle-icon');
+                if (content) {
+                    content.classList.toggle('hidden');
+                    if (icon) {
+                        icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+                    }
+                }
+            });
+        }
+        
         const quizConjugationsBtnMobile = document.getElementById('quizConjugationsBtnMobile');
         if (quizConjugationsBtnMobile) {
             quizConjugationsBtnMobile.addEventListener('click', (e) => {
@@ -2501,7 +2518,38 @@ const UI = {
             quizCardFlipContainer.classList.remove('flipped');
         }
         
+        // Reset hint display
+        const quizShowHintText = document.getElementById('quizShowHintText');
+        const quizHintMobile = document.getElementById('quizHintMobile');
+        if (quizShowHintText) {
+            quizShowHintText.textContent = 'Show hint';
+        }
+        if (quizHintMobile) {
+            quizHintMobile.classList.add('hidden');
+        }
+        
         // Populate expandable sections on back
+        // Example sentences
+        const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
+        if (examplesContentMobile && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+            examplesContentMobile.innerHTML = `
+                <ul>
+                    ${currentWord.exampleSentences.map(s => {
+                        const parts = s.split(/\n|\\n/);
+                        if (parts.length > 1) {
+                            return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
+                        } else {
+                            const match = s.match(/^(.+?)\s*\((.+?)\)$/);
+                            if (match) {
+                                return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
+                            }
+                            return `<li>${this.escapeHtml(s)}</li>`;
+                        }
+                    }).join('')}
+                </ul>
+            `;
+        }
+        
         // Conjugations (if verb)
         const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
         const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');
