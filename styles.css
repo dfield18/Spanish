@@ -2476,23 +2476,32 @@ body {
         position: absolute;
         backface-visibility: hidden;
         transition: transform 0.6s;
-        display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
     }
     
+    /* Front face: show by default */
     .quiz-card-front {
         transform: rotateY(0deg);
+        display: flex;
     }
     
+    /* Back face: ALWAYS hidden by default - only show when flipped */
     .quiz-card-back {
         transform: rotateY(180deg);
-        /* Ensure back side is completely hidden when not flipped */
+        display: none !important; /* CRITICAL: Must override .quiz-card-face */
         visibility: hidden !important;
-        pointer-events: none !important; /* Prevent interaction when hidden */
+        pointer-events: none !important;
         opacity: 0 !important;
-        display: none !important; /* Override .quiz-card-face display: flex */
+    }
+    
+    /* Only show back when flipped - must come AFTER the default hide rule */
+    .quiz-card-flip-container.flipped .quiz-card-back {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
     
     /* CRITICAL: Override .quiz-card-face display:flex for back when not flipped */
@@ -2518,12 +2527,7 @@ body {
         opacity: 0 !important;
     }
     
-    .quiz-card-flip-container.flipped .quiz-card-back {
-        transform: rotateY(0deg);
-        visibility: visible !important;
-        pointer-events: auto !important; /* Re-enable interaction when visible */
-        opacity: 1 !important;
-    }
+    /* Removed duplicate .quiz-card-flip-container.flipped .quiz-card-back rule - handled above at line 2499 */
     
     /* Expandable sections on back - ensure they're never visible on front */
     .quiz-expandable-section {

@@ -1098,25 +1098,25 @@ const UI = {
                 
                 if (quizCardBack) {
                     if (isFlipped) {
-                        quizCardBack.style.display = 'flex';
-                        quizCardBack.style.visibility = 'visible';
-                        quizCardBack.style.opacity = '1';
+                        quizCardBack.style.setProperty('display', 'flex', 'important');
+                        quizCardBack.style.setProperty('visibility', 'visible', 'important');
+                        quizCardBack.style.setProperty('opacity', '1', 'important');
                     } else {
-                        quizCardBack.style.display = 'none';
-                        quizCardBack.style.visibility = 'hidden';
-                        quizCardBack.style.opacity = '0';
+                        quizCardBack.style.setProperty('display', 'none', 'important');
+                        quizCardBack.style.setProperty('visibility', 'hidden', 'important');
+                        quizCardBack.style.setProperty('opacity', '0', 'important');
                     }
                 }
                 
                 if (quizCardFront) {
                     if (isFlipped) {
-                        quizCardFront.style.display = 'none';
-                        quizCardFront.style.visibility = 'hidden';
-                        quizCardFront.style.opacity = '0';
+                        quizCardFront.style.setProperty('display', 'none', 'important');
+                        quizCardFront.style.setProperty('visibility', 'hidden', 'important');
+                        quizCardFront.style.setProperty('opacity', '0', 'important');
                     } else {
-                        quizCardFront.style.display = 'flex';
-                        quizCardFront.style.visibility = 'visible';
-                        quizCardFront.style.opacity = '1';
+                        quizCardFront.style.setProperty('display', 'flex', 'important');
+                        quizCardFront.style.setProperty('visibility', 'visible', 'important');
+                        quizCardFront.style.setProperty('opacity', '1', 'important');
                     }
                 }
                 
@@ -2539,15 +2539,16 @@ const UI = {
         const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
         
         // Immediately hide back and show front to prevent Example Sentences from showing
+        // Use setProperty with 'important' flag to override CSS !important rules
         if (quizCardBack) {
-            quizCardBack.style.display = 'none';
-            quizCardBack.style.visibility = 'hidden';
-            quizCardBack.style.opacity = '0';
+            quizCardBack.style.setProperty('display', 'none', 'important');
+            quizCardBack.style.setProperty('visibility', 'hidden', 'important');
+            quizCardBack.style.setProperty('opacity', '0', 'important');
         }
         if (quizCardFront) {
-            quizCardFront.style.display = 'flex';
-            quizCardFront.style.visibility = 'visible';
-            quizCardFront.style.opacity = '1';
+            quizCardFront.style.setProperty('display', 'flex', 'important');
+            quizCardFront.style.setProperty('visibility', 'visible', 'important');
+            quizCardFront.style.setProperty('opacity', '1', 'important');
         }
         if (quizCardFlipContainer) {
             quizCardFlipContainer.classList.remove('flipped');
@@ -2618,14 +2619,14 @@ const UI = {
         
         // Card visibility is already set at the start of renderQuiz() - ensure it's still correct
         if (quizCardBack) {
-            quizCardBack.style.display = 'none';
-            quizCardBack.style.visibility = 'hidden';
-            quizCardBack.style.opacity = '0';
+            quizCardBack.style.setProperty('display', 'none', 'important');
+            quizCardBack.style.setProperty('visibility', 'hidden', 'important');
+            quizCardBack.style.setProperty('opacity', '0', 'important');
         }
         if (quizCardFront) {
-            quizCardFront.style.display = 'flex';
-            quizCardFront.style.visibility = 'visible';
-            quizCardFront.style.opacity = '1';
+            quizCardFront.style.setProperty('display', 'flex', 'important');
+            quizCardFront.style.setProperty('visibility', 'visible', 'important');
+            quizCardFront.style.setProperty('opacity', '1', 'important');
         }
         if (quizCardFlipContainer) {
             quizCardFlipContainer.classList.remove('flipped');
