@@ -171,21 +171,58 @@
                     <div id="quizStats" class="quiz-stats"></div>
                 </div>
             </div>
+            
+            <!-- Mobile Quiz Header -->
+            <div class="quiz-mobile-header">
+                <button id="quizMobileBackBtn" class="quiz-mobile-back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div id="quizMobileCounter" class="quiz-mobile-counter">1/6</div>
+                <select id="quizViewFilterDropdownMobileQuiz" class="quiz-mobile-filter-dropdown">
+                    <option value="reviewNow" selected>Review Now</option>
+                    <option value="all">All Words</option>
+                    <option value="active">Active</option>
+                    <option value="archive">Archive</option>
+                    <option value="checkLater">Check Later</option>
+                </select>
+            </div>
+            
             <div id="quizContent" class="quiz-content">
                 <div id="quizCard" class="quiz-card">
-                    <!-- Status chips for mobile quiz mode - at the top -->
+                    <!-- Navigation arrows -->
+                    <button id="prevQuizBtnMobile" class="quiz-nav-arrow quiz-nav-arrow-left">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <button id="nextQuizBtnMobile" class="quiz-nav-arrow quiz-nav-arrow-right">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    
+                    <div id="quizWord" class="quiz-word"></div>
+                    
+                    <!-- Show hint button -->
+                    <button id="quizShowHintBtn" class="quiz-show-hint-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM14 13.7V16H10V13.7C8.84 13.1 8 11.9 8 10.5C8 8.57 9.57 7 11.5 7C13.43 7 15 8.57 15 10.5C15 11.9 14.16 13.1 13 13.7ZM11 20H13V22H11V20Z" fill="currentColor"/>
+                        </svg>
+                        <span>Show hint</span>
+                    </button>
+                    
+                    <!-- Tap to flip instruction -->
+                    <div class="quiz-flip-instruction">Tap to flip • Swipe to navigate</div>
+                    
+                    <!-- Status chips for mobile quiz mode - at the bottom -->
                     <div class="quiz-status-chips-mobile">
                         <button class="quiz-status-chip quiz-status-chip-review-now" id="quiz-status-review-now" data-status="review-now">
                             <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                             <span>Review Now</span>
-                        </button>
-                        <button class="quiz-status-chip quiz-status-chip-check-later" id="quiz-status-check-later" data-status="check-later">
-                            <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <span>Check Later</span>
                         </button>
                         <button class="quiz-status-chip quiz-status-chip-archived" id="quiz-status-archived" data-status="archived">
                             <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +232,13 @@
                                 <rect x="9" y="8.5" width="4" height="6" stroke="currentColor" stroke-width="1.5" fill="none"/>
                                 <path d="M11 8.5L13 8.5L13 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                             </svg>
-                            <span>Archived</span>
+                            <span>Archive</span>
+                        </button>
+                        <button class="quiz-status-chip quiz-status-chip-check-later" id="quiz-status-check-later" data-status="check-later">
+                            <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2V6M12 18V22M6 12H2M22 12H18M19.07 19.07L16.24 16.24M19.07 4.93L16.24 7.76M4.93 19.07L7.76 16.24M4.93 4.93L7.76 7.76M12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Check Later</span>
                         </button>
                         <button class="quiz-status-chip quiz-status-chip-active-chip" id="quiz-status-active" data-status="active">
                             <svg class="status-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

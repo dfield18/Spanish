@@ -2321,6 +2321,107 @@ body {
         display: none;
     }
     
+    /* Mobile Quiz Header - Hidden on desktop */
+    .quiz-mobile-header {
+        display: none;
+    }
+    
+    .quiz-mobile-back-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        color: var(--foreground);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quiz-mobile-counter {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+    
+    .quiz-mobile-filter-dropdown {
+        padding: 0.375rem 1.75rem 0.375rem 0.625rem;
+        background: var(--card);
+        border: 1px solid hsl(20, 15%, 45% / 0.15);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--foreground);
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+    }
+    
+    /* Quiz Card Mobile Styling */
+    .quiz-card {
+        margin-top: 3.5rem; /* Space for mobile header */
+        position: relative;
+        padding: 2rem 1.5rem 5rem 1.5rem; /* Extra bottom padding for status chips */
+    }
+    
+    /* Navigation Arrows */
+    .quiz-nav-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: hsl(20, 15%, 45% / 0.5);
+        cursor: pointer;
+        padding: 0.5rem;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quiz-nav-arrow-left {
+        left: 0.5rem;
+    }
+    
+    .quiz-nav-arrow-right {
+        right: 0.5rem;
+    }
+    
+    /* Show Hint Button */
+    .quiz-show-hint-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        background: none;
+        border: none;
+        color: var(--terracotta);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Flip Instruction */
+    .quiz-flip-instruction {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        color: hsl(20, 15%, 45% / 0.7);
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Card top border gradient */
+    .quiz-card {
+        border-top: 3px solid var(--terracotta);
+    }
+    
     .quiz-header h2 {
         font-size: 1.25rem;
         margin-bottom: 0.5rem;
@@ -2359,20 +2460,24 @@ body {
     .quiz-status-chips-mobile {
         display: flex !important;
         flex-wrap: nowrap; /* Keep all chips on one line */
-        gap: 0.375rem; /* Slightly smaller gap on mobile */
+        gap: 0.5rem; /* Gap between chips */
+        position: absolute;
+        bottom: 1.5rem;
+        left: 1.5rem;
+        right: 1.5rem;
     }
     
     /* Make quiz status chips smaller on mobile to fit on one line */
     .quiz-status-chip {
         flex: 1 1 0; /* Equal flex sizing */
         min-width: 0; /* Allow shrinking */
-        padding: 0.4rem 0.625rem; /* Slightly smaller padding */
-        font-size: 0.7rem; /* Slightly smaller font */
+        padding: 0.5rem 0.75rem; /* Padding */
+        font-size: 0.75rem; /* Font size */
     }
     
     .quiz-status-chip .status-icon {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         flex-shrink: 0;
     }
     
@@ -2392,11 +2497,15 @@ body {
     }
 
     .quiz-card {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem 5rem 1.5rem; /* Extra bottom padding for status chips */
+        margin-top: 3.5rem; /* Space for mobile header */
+        position: relative;
     }
 
     .quiz-word {
-        font-size: 2rem;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        padding: 0 3rem; /* Space for arrows */
     }
 
     .quiz-translation {

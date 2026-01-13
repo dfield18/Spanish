@@ -926,6 +926,74 @@ const UI = {
             });
         }
         
+        // Mobile quiz header dropdown
+        const quizViewFilterDropdownMobileQuiz = document.getElementById('quizViewFilterDropdownMobileQuiz');
+        if (quizViewFilterDropdownMobileQuiz) {
+            quizViewFilterDropdownMobileQuiz.addEventListener('change', (e) => {
+                AppState.quizViewFilter = e.target.value;
+                AppState.saveSettings();
+                AppState.currentQuizIndex = 0; // Reset to first word when filter changes
+                AppState.updateQuizWords();
+                this.renderQuiz();
+                
+                // Sync other dropdowns
+                const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
+                const quizViewFilterDropdownMobile = document.getElementById('quizViewFilterDropdownMobile');
+                if (quizViewFilterDropdown) {
+                    quizViewFilterDropdown.value = e.target.value;
+                }
+                if (quizViewFilterDropdownMobile) {
+                    quizViewFilterDropdownMobile.value = e.target.value;
+                }
+            });
+        }
+        
+        // Mobile quiz back button
+        const quizMobileBackBtn = document.getElementById('quizMobileBackBtn');
+        if (quizMobileBackBtn) {
+            quizMobileBackBtn.addEventListener('click', () => {
+                this.showView('home');
+            });
+        }
+        
+        // Mobile quiz navigation arrows
+        const prevQuizBtnMobile = document.getElementById('prevQuizBtnMobile');
+        if (prevQuizBtnMobile) {
+            prevQuizBtnMobile.addEventListener('click', () => this.prevQuizWord());
+        }
+        const nextQuizBtnMobile = document.getElementById('nextQuizBtnMobile');
+        if (nextQuizBtnMobile) {
+            nextQuizBtnMobile.addEventListener('click', () => this.nextQuizWord());
+        }
+        
+        // Show hint button
+        const quizShowHintBtn = document.getElementById('quizShowHintBtn');
+        if (quizShowHintBtn) {
+            quizShowHintBtn.addEventListener('click', () => {
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                if (currentWord) {
+                    const hintContainer = document.getElementById('quizHint');
+                    if (hintContainer) {
+                        if (hintContainer.classList.contains('hidden')) {
+                            // Show hint
+                            const vocabWord = new VocabularyWord(currentWord);
+                            if (vocabWord.mnemonics && vocabWord.mnemonics.length > 0) {
+                                hintContainer.innerHTML = vocabWord.mnemonics.join('<br>');
+                            } else {
+                                hintContainer.innerHTML = 'No hint available';
+                            }
+                            hintContainer.classList.remove('hidden');
+                            quizShowHintBtn.querySelector('span').textContent = 'Hide hint';
+                        } else {
+                            // Hide hint
+                            hintContainer.classList.add('hidden');
+                            quizShowHintBtn.querySelector('span').textContent = 'Show hint';
+                        }
+                    }
+                }
+            });
+        }
+        
         document.getElementById('quizLanguageToggle').addEventListener('change', (e) => {
             AppState.displayLanguage = e.target.value;
             AppState.saveSettings();
@@ -2346,6 +2414,7 @@ const UI = {
         // Sync quiz filter dropdowns (desktop and mobile)
         const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
         const quizViewFilterDropdownMobile = document.getElementById('quizViewFilterDropdownMobile');
+        const quizViewFilterDropdownMobileQuiz = document.getElementById('quizViewFilterDropdownMobileQuiz');
         const filterValue = AppState.quizViewFilter || 'reviewNow';
         if (quizViewFilterDropdown) {
             quizViewFilterDropdown.value = filterValue;
@@ -2353,18 +2422,31 @@ const UI = {
         if (quizViewFilterDropdownMobile) {
             quizViewFilterDropdownMobile.value = filterValue;
         }
+        if (quizViewFilterDropdownMobileQuiz) {
+            quizViewFilterDropdownMobileQuiz.value = filterValue;
+        }
         
         AppState.updateQuizWords();
         const quizContent = document.getElementById('quizContent');
         const quizCard = document.getElementById('quizCard');
         const quizEmpty = document.getElementById('quizEmpty');
         
+        // Update mobile counter
+        const quizMobileCounter = document.getElementById('quizMobileCounter');
+        if (quizMobileCounter && AppState.quizWords.length > 0) {
+            quizMobileCounter.textContent = `${AppState.currentQuizIndex + 1}/${AppState.quizWords.length}`;
+        }
+        
         if (AppState.quizWords.length === 0) {
             quizCard.classList.add('hidden');
             const prevBtn = document.getElementById('prevQuizBtn');
             const nextBtn = document.getElementById('nextQuizBtn');
+            const prevBtnMobile = document.getElementById('prevQuizBtnMobile');
+            const nextBtnMobile = document.getElementById('nextQuizBtnMobile');
             if (prevBtn) prevBtn.classList.add('hidden');
             if (nextBtn) nextBtn.classList.add('hidden');
+            if (prevBtnMobile) prevBtnMobile.classList.add('hidden');
+            if (nextBtnMobile) nextBtnMobile.classList.add('hidden');
             quizEmpty.classList.remove('hidden');
             return;
         }
