@@ -957,6 +957,16 @@ const UI = {
         }
         
         // Mobile quiz navigation arrows
+        // Mobile quiz navigation arrows
+        const prevQuizBtnMobile = document.getElementById('prevQuizBtnMobile');
+        if (prevQuizBtnMobile) {
+            prevQuizBtnMobile.addEventListener('click', () => this.prevQuizWord());
+        }
+        const nextQuizBtnMobile = document.getElementById('nextQuizBtnMobile');
+        if (nextQuizBtnMobile) {
+            nextQuizBtnMobile.addEventListener('click', () => this.nextQuizWord());
+        }
+        
         // Show hint text
         const quizShowHintText = document.getElementById('quizShowHintText');
         if (quizShowHintText) {
@@ -1066,7 +1076,8 @@ const UI = {
                 if (e.target.closest('.quiz-show-hint-text') || 
                     e.target.closest('.quiz-hint-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
-                    e.target.closest('.quiz-status-chip')) {
+                    e.target.closest('.quiz-status-chip') ||
+                    e.target.closest('.quiz-nav-arrow')) {
                     return;
                 }
                 quizCardFlipContainer.classList.toggle('flipped');
