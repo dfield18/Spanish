@@ -2489,20 +2489,23 @@ body {
     .quiz-card-back {
         transform: rotateY(180deg);
         /* Ensure back side is completely hidden when not flipped */
-        visibility: hidden;
-        pointer-events: none; /* Prevent interaction when hidden */
+        visibility: hidden !important;
+        pointer-events: none !important; /* Prevent interaction when hidden */
+        opacity: 0 !important;
     }
     
     .quiz-card-flip-container.flipped .quiz-card-front {
         transform: rotateY(-180deg);
-        visibility: hidden;
-        pointer-events: none; /* Prevent interaction when hidden */
+        visibility: hidden !important;
+        pointer-events: none !important; /* Prevent interaction when hidden */
+        opacity: 0 !important;
     }
     
     .quiz-card-flip-container.flipped .quiz-card-back {
         transform: rotateY(0deg);
-        visibility: visible;
-        pointer-events: auto; /* Re-enable interaction when visible */
+        visibility: visible !important;
+        pointer-events: auto !important; /* Re-enable interaction when visible */
+        opacity: 1 !important;
     }
     
     /* Expandable sections on back - ensure they're never visible on front */
@@ -2512,17 +2515,19 @@ body {
     }
     
     /* Hide example sentences section when card is not flipped - multiple layers of protection */
-    .quiz-card-flip-container:not(.flipped) .quiz-expandable-section {
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back,
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back * {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
+        pointer-events: none !important;
     }
     
     /* Show example sentences section when card is flipped */
     .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
-        display: block;
-        visibility: visible;
-        opacity: 1;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     .quiz-expandable-header {

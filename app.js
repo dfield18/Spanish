@@ -1100,11 +1100,12 @@ const UI = {
                     // Only manage visibility when card is flipped - CSS handles hiding on front
                     if (isFlipped && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
                         // Card is flipped - show example sentences if they exist
-                        // Remove hidden class only when flipped (CSS will handle visibility)
                         examplesSectionMobile.classList.remove('hidden');
+                        examplesSectionMobile.style.display = '';
                     } else {
-                        // Card is not flipped - ensure hidden (though CSS should handle this)
+                        // Card is not flipped - ensure hidden (CSS + inline style for extra protection)
                         examplesSectionMobile.classList.add('hidden');
+                        examplesSectionMobile.style.display = 'none';
                     }
                 }
                 
@@ -2585,8 +2586,10 @@ const UI = {
         const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
         
         // Always hide example sentences section initially (on front of card)
+        // CSS handles visibility via quiz-card-back, but we also add hidden class as backup
         if (examplesSectionMobile) {
             examplesSectionMobile.classList.add('hidden');
+            examplesSectionMobile.style.display = 'none';
         }
         
         // Collapse example sentences content when navigating to new card
