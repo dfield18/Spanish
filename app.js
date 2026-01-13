@@ -2087,10 +2087,17 @@ const UI = {
         // Create handler function that will be attached to each button
         const createChipHandler = (status, chipElement) => {
             return (e) => {
-                console.log(`Quiz chip clicked: ${status}`, e.target);
+                console.log(`Quiz chip clicked: ${status}`, e.target, chipElement);
+                
+                // Ensure we're working with the button element, not a child SVG/span
+                const button = e.target.closest('.quiz-status-chip') || chipElement;
+                if (!button || button !== chipElement) {
+                    console.warn(`Click target mismatch for ${status}:`, e.target, 'expected:', chipElement);
+                }
                 
                 // Stop event from bubbling up
                 e.stopPropagation();
+                e.preventDefault(); // Prevent any default behavior
                 
                 // Make sure we're in quiz view and have quiz words
                 if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) {
@@ -2166,15 +2173,47 @@ const UI = {
                 console.warn(`${status} chip not found`);
                 return;
             }
+            
+            // Ensure SVG and child elements don't block clicks
+            const svg = chip.querySelector('svg');
+            if (svg) {
+                svg.style.pointerEvents = 'none';
+            }
+            const span = chip.querySelector('span');
+            if (span) {
+                span.style.pointerEvents = 'none';
+            }
+            
             // Remove any existing onclick handler first
             chip.onclick = null;
-            // Attach new handler
-            chip.onclick = createChipHandler(status, chip);
+            
+            // Create and attach handler
+            const handler = createChipHandler(status, chip);
+            chip.onclick = handler;
+            
+            // Also attach via addEventListener as backup (but remove old one first)
+            if (chip._quizChipHandler) {
+                chip.removeEventListener('click', chip._quizChipHandler);
+                chip.removeEventListener('touchend', chip._quizChipHandler);
+            }
+            chip._quizChipHandler = handler;
+            chip.addEventListener('click', handler, { passive: false });
+            chip.addEventListener('touchend', handler, { passive: false });
+            
+            // Ensure button is fully clickable
             chip.style.pointerEvents = 'auto';
             chip.style.cursor = 'pointer';
+            chip.style.touchAction = 'manipulation';
+            chip.style.webkitTapHighlightColor = 'transparent';
+            
             // Ensure button is enabled
             if (chip.disabled !== undefined) {
                 chip.disabled = false;
+            }
+            
+            // Log attachment for debugging (especially for archived)
+            if (status === 'archived') {
+                console.log(`Archived chip handler attached:`, chip, chip.onclick, chip._quizChipHandler);
             }
         };
         

@@ -1550,6 +1550,14 @@ body {
     touch-action: manipulation;
 }
 
+/* Ensure SVG and span elements inside chips don't block clicks */
+.quiz-status-chip svg,
+.quiz-status-chip .status-icon,
+.quiz-status-chip span {
+    pointer-events: none;
+    user-select: none;
+}
+
 .quiz-status-chip:hover:not(.quiz-status-chip-active) {
     background: hsl(36, 40%, 85% / 0.6);
     border-color: hsl(20, 15%, 45% / 0.2);
