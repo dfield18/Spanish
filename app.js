@@ -606,9 +606,24 @@ const AppState = {
     },
 
     updateQuizWords() {
+        // If filtering for archive, include all archived words regardless of review status
+        if (this.quizViewFilter === 'archive') {
+            this.quizWords = this.words.filter(w => {
+                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return vocabWord.status === 'archived';
+            });
+            return;
+        }
+        
+        // For "all" filter, include all words (including archived ones)
+        if (this.quizViewFilter === 'all') {
+            this.quizWords = this.words;
+            return;
+        }
+        
+        // For other filters, only include words that are enabled for review AND due for review
         let filtered = this.words.filter(w => {
             const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
-            // Only include words that are enabled for review AND due for review
             return vocabWord.review && vocabWord.isDueForReview && vocabWord.isDueForReview();
         });
         
@@ -617,11 +632,6 @@ const AppState = {
             filtered = filtered.filter(w => {
                 const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
                 return vocabWord.isActive !== false;
-            });
-        } else if (this.quizViewFilter === 'archive') {
-            filtered = filtered.filter(w => {
-                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
-                return vocabWord.status === 'archived';
             });
         } else if (this.quizViewFilter === 'checkLater') {
             filtered = filtered.filter(w => {
@@ -634,7 +644,6 @@ const AppState = {
                 return vocabWord.status === 'review-now';
             });
         }
-        // If quizViewFilter is 'all', show all words that are due for review (no status filtering)
         
         this.quizWords = filtered;
     },
