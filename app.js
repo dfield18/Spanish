@@ -1065,6 +1065,52 @@ const UI = {
             prevQuizBtn.addEventListener('click', () => this.prevQuizWord());
         }
         document.getElementById('nextQuizBtn').addEventListener('click', () => this.nextQuizWord());
+        
+        // Mobile quiz card flip handler
+        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.addEventListener('click', (e) => {
+                // Don't flip if clicking on buttons or expandable headers
+                if (e.target.closest('.quiz-show-hint-btn') || 
+                    e.target.closest('.quiz-expandable-header') ||
+                    e.target.closest('.quiz-status-chip') ||
+                    e.target.closest('.quiz-nav-arrow')) {
+                    return;
+                }
+                quizCardFlipContainer.classList.toggle('flipped');
+            });
+        }
+        
+        // Mobile expandable sections handlers
+        const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
+        if (quizExamplesBtnMobile) {
+            quizExamplesBtnMobile.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const content = document.getElementById('quiz-examples-content-mobile');
+                const icon = quizExamplesBtnMobile.querySelector('.toggle-icon');
+                if (content) {
+                    content.classList.toggle('hidden');
+                    if (icon) {
+                        icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+                    }
+                }
+            });
+        }
+        
+        const quizConjugationsBtnMobile = document.getElementById('quizConjugationsBtnMobile');
+        if (quizConjugationsBtnMobile) {
+            quizConjugationsBtnMobile.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const content = document.getElementById('quiz-conjugations-content-mobile');
+                const icon = quizConjugationsBtnMobile.querySelector('.toggle-icon');
+                if (content) {
+                    content.classList.toggle('hidden');
+                    if (icon) {
+                        icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+                    }
+                }
+            });
+        }
     },
 
     showView(view) {
@@ -2459,10 +2505,83 @@ const UI = {
         }
         
         const currentWord = AppState.quizWords[AppState.currentQuizIndex];
-        const showWord = AppState.displayLanguage === 'spanish' ? currentWord.spanish : currentWord.english;
-        const translation = AppState.displayLanguage === 'spanish' ? currentWord.english : currentWord.spanish;
+        const englishWord = currentWord.english;
+        const spanishWord = currentWord.spanish;
         
-        document.getElementById('quizWord').textContent = showWord;
+        // Front of card: Show English
+        const quizWordFront = document.getElementById('quizWord');
+        if (quizWordFront) {
+            quizWordFront.textContent = englishWord;
+        }
+        
+        // Back of card: Show Spanish
+        const quizWordBack = document.getElementById('quizWordBack');
+        if (quizWordBack) {
+            quizWordBack.textContent = spanishWord;
+        }
+        
+        // Reset card to front side
+        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.classList.remove('flipped');
+        }
+        
+        // Populate expandable sections on back
+        // Example sentences
+        const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
+        if (examplesContentMobile && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+            examplesContentMobile.innerHTML = `
+                <ul>
+                    ${currentWord.exampleSentences.map(s => {
+                        const parts = s.split(/\n|\\n/);
+                        if (parts.length > 1) {
+                            return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
+                        } else {
+                            const match = s.match(/^(.+?)\s*\((.+?)\)$/);
+                            if (match) {
+                                return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
+                            }
+                            return `<li>${this.escapeHtml(s)}</li>`;
+                        }
+                    }).join('')}
+                </ul>
+            `;
+        }
+        
+        // Conjugations (if verb)
+        const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
+        const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');
+        if (currentVocabWord.conjugations) {
+            if (conjugationsSectionMobile) {
+                conjugationsSectionMobile.classList.remove('hidden');
+            }
+            if (conjugationsContentMobile) {
+                const irregularForms = currentVocabWord.conjugations.irregularForms || [];
+                let conjugationsHtml = '';
+                
+                if (irregularForms.length > 0) {
+                    conjugationsHtml = '<div class="irregular-forms"><strong>Irregular Forms:</strong><ul>';
+                    irregularForms.forEach(form => {
+                        conjugationsHtml += `<li>${this.escapeHtml(form)}</li>`;
+                    });
+                    conjugationsHtml += '</ul></div>';
+                }
+                
+                if (currentVocabWord.conjugations.present) {
+                    conjugationsHtml += '<div class="conjugation-tense"><strong>Present:</strong><ul>';
+                    Object.entries(currentVocabWord.conjugations.present).forEach(([person, form]) => {
+                        conjugationsHtml += `<li><strong>${person}:</strong> ${this.escapeHtml(form)}</li>`;
+                    });
+                    conjugationsHtml += '</ul></div>';
+                }
+                
+                conjugationsContentMobile.innerHTML = conjugationsHtml;
+            }
+        } else {
+            if (conjugationsSectionMobile) {
+                conjugationsSectionMobile.classList.add('hidden');
+            }
+        }
         
         // Update quiz toggles
         const currentVocabWord = new VocabularyWord(currentWord);
@@ -3160,6 +3279,12 @@ const UI = {
     prevQuizWord() {
         this.collapseAllExpandedBoxes();
         
+        // Reset card flip to front
+        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.classList.remove('flipped');
+        }
+        
         // Move to previous word (wrap around to end if at beginning)
         if (AppState.currentQuizIndex === 0) {
             AppState.currentQuizIndex = AppState.quizWords.length - 1;
@@ -3171,6 +3296,12 @@ const UI = {
 
     nextQuizWord() {
         this.collapseAllExpandedBoxes();
+        
+        // Reset card flip to front
+        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.classList.remove('flipped');
+        }
         
         // Move to next word
         AppState.currentQuizIndex = (AppState.currentQuizIndex + 1) % AppState.quizWords.length;

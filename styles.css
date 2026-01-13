@@ -2417,6 +2417,98 @@ body {
         margin-bottom: 1.5rem;
     }
     
+    /* Card Flip Container */
+    .quiz-card-flip-container {
+        perspective: 1000px;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    
+    .quiz-card-face {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        backface-visibility: hidden;
+        transition: transform 0.6s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quiz-card-front {
+        transform: rotateY(0deg);
+    }
+    
+    .quiz-card-back {
+        transform: rotateY(180deg);
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-front {
+        transform: rotateY(-180deg);
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back {
+        transform: rotateY(0deg);
+    }
+    
+    /* Expandable sections on back */
+    .quiz-expandable-section {
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .quiz-expandable-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: hsl(20, 15%, 45% / 0.05);
+        border: 1px solid hsl(20, 15%, 45% / 0.15);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--foreground);
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .quiz-expandable-header:hover {
+        background: hsl(20, 15%, 45% / 0.1);
+    }
+    
+    .quiz-expandable-content {
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        background: hsl(20, 15%, 45% / 0.02);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+    }
+    
+    .quiz-expandable-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .quiz-expandable-content li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid hsl(20, 15%, 45% / 0.1);
+    }
+    
+    .quiz-expandable-content li:last-child {
+        border-bottom: none;
+    }
+    
+    .translation-line {
+        color: hsl(20, 15%, 45% / 0.7);
+        font-style: italic;
+    }
+    
     /* Card top border gradient */
     .quiz-card {
         border-top: 3px solid var(--terracotta);
@@ -2500,12 +2592,24 @@ body {
         padding: 2rem 1.5rem 5rem 1.5rem; /* Extra bottom padding for status chips */
         margin-top: 3.5rem; /* Space for mobile header */
         position: relative;
+        min-height: 400px; /* Ensure enough height for flip */
+    }
+    
+    .quiz-card-flip-container {
+        min-height: 350px; /* Ensure container has height */
     }
 
     .quiz-word {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
         padding: 0 3rem; /* Space for arrows */
+        text-align: center;
+    }
+    
+    #quizWordBack {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
     }
 
     .quiz-translation {
