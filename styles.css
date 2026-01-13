@@ -2492,6 +2492,23 @@ body {
         visibility: hidden !important;
         pointer-events: none !important; /* Prevent interaction when hidden */
         opacity: 0 !important;
+        display: none !important; /* Override .quiz-card-face display: flex */
+    }
+    
+    /* CRITICAL: Override .quiz-card-face display:flex for back when not flipped */
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Hide all children of back when not flipped */
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
     
     .quiz-card-flip-container.flipped .quiz-card-front {

@@ -2533,6 +2533,26 @@ const UI = {
     },
 
     renderQuiz() {
+        // CRITICAL: Set card visibility FIRST before anything else to prevent flash
+        const quizCardBack = document.getElementById('quizCardBack');
+        const quizCardFront = document.getElementById('quizCardFront');
+        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
+        
+        // Immediately hide back and show front to prevent Example Sentences from showing
+        if (quizCardBack) {
+            quizCardBack.style.display = 'none';
+            quizCardBack.style.visibility = 'hidden';
+            quizCardBack.style.opacity = '0';
+        }
+        if (quizCardFront) {
+            quizCardFront.style.display = 'flex';
+            quizCardFront.style.visibility = 'visible';
+            quizCardFront.style.opacity = '1';
+        }
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.classList.remove('flipped');
+        }
+        
         // Sync quiz filter dropdowns (desktop and mobile)
         const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
         const quizViewFilterDropdownMobile = document.getElementById('quizViewFilterDropdownMobile');
@@ -2596,16 +2616,7 @@ const UI = {
             quizWordBack.textContent = spanishWord;
         }
         
-        // Reset card to front side
-        const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
-        if (quizCardFlipContainer) {
-            quizCardFlipContainer.classList.remove('flipped');
-        }
-        
-        // CRITICAL: Ensure quizCardBack is hidden and quizCardFront is visible via inline styles
-        // This is the most reliable way to ensure the back doesn't show on mobile
-        const quizCardBack = document.getElementById('quizCardBack');
-        const quizCardFront = document.getElementById('quizCardFront');
+        // Card visibility is already set at the start of renderQuiz() - ensure it's still correct
         if (quizCardBack) {
             quizCardBack.style.display = 'none';
             quizCardBack.style.visibility = 'hidden';
@@ -2615,6 +2626,9 @@ const UI = {
             quizCardFront.style.display = 'flex';
             quizCardFront.style.visibility = 'visible';
             quizCardFront.style.opacity = '1';
+        }
+        if (quizCardFlipContainer) {
+            quizCardFlipContainer.classList.remove('flipped');
         }
         
         // Reset hint display
