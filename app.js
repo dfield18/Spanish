@@ -608,8 +608,8 @@ const AppState = {
     updateQuizWords() {
         // If filtering for archive, include all archived words regardless of review status
         if (this.quizViewFilter === 'archive') {
-            this.quizWords = this.words.filter(w => {
-                const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+        this.quizWords = this.words.filter(w => {
+            const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
                 return vocabWord.status === 'archived';
             });
             return;
@@ -2108,35 +2108,60 @@ const UI = {
                 e.stopPropagation();
                 e.preventDefault(); // Prevent any default behavior
                 
-                // Make sure we're in quiz view and have quiz words
-                if (AppState.currentView !== 'quiz' || !AppState.quizWords || AppState.quizWords.length === 0) {
-                    console.warn('Not in quiz view or no quiz words');
+                // Make sure we're in quiz view
+                if (AppState.currentView !== 'quiz') {
+                    console.warn('Not in quiz view');
                     return;
                 }
                 
+                // Get current word from AppState.words (not quizWords) to ensure we can archive even if word would be filtered out
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
-                if (!currentWord) return;
+                if (!currentWord) {
+                    console.warn('No current word in quiz');
+                    return;
+                }
                 
                 // OPTIMISTIC UI UPDATE - Update UI immediately
+                // Deselect all chips first
                 const allChips = quizCard.querySelectorAll('.quiz-status-chip');
                 allChips.forEach(c => c.classList.remove('quiz-status-chip-active'));
+                // Select the clicked chip
                 chipElement.classList.add('quiz-status-chip-active');
                 
                 // Update AppState optimistically
                 const wordIndex = AppState.words.findIndex(w => w.id === currentWord.id);
                 if (wordIndex !== -1) {
                     const vocabWord = AppState.words[wordIndex];
-                    vocabWord.status = status;
-                    vocabWord.reviewNow = status === 'review-now';
-                    vocabWord.checkLater = status === 'check-later';
-                    vocabWord.archived = status === 'archived';
-                    vocabWord.review = status !== 'archived';
-                    vocabWord.isActive = true;
+                    
+                    if (status === 'active') {
+                        // Active: set isActive=true, status=null, clear all status flags
+                        vocabWord.isActive = true;
+                        vocabWord.status = null;
+                        vocabWord.reviewNow = false;
+                        vocabWord.checkLater = false;
+                        vocabWord.archived = false;
+                        vocabWord.review = true; // Active words can be reviewed
+                    } else {
+                        // Status chips: set status and flags, isActive=true
+                        vocabWord.status = status;
+                        vocabWord.reviewNow = status === 'review-now';
+                        vocabWord.checkLater = status === 'check-later';
+                        vocabWord.archived = status === 'archived';
+                        vocabWord.review = status !== 'archived';
+                        vocabWord.isActive = true;
+                    }
                 }
                 
                 // Defer storage update
                 setTimeout(() => {
-                    const updates = {
+                    const updates = status === 'active' ? {
+                        isActive: true,
+                        status: null,
+                        reviewNow: false,
+                        checkLater: false,
+                        archived: false,
+                        review: true
+                    } : {
                         status: status,
                         reviewNow: status === 'review-now',
                         checkLater: status === 'check-later',
@@ -2151,24 +2176,60 @@ const UI = {
                         AppState.words[syncWordIndex] = new VocabularyWord(words.find(w => w.id === currentWord.id));
                     }
                     
+                    // Check if word will be filtered out after status change
+                    const wasInArchiveFilter = AppState.quizViewFilter === 'archive';
+                    const changingFromArchive = wasInArchiveFilter && status !== 'archived';
+                    
                     AppState.updateQuizWords();
-                    // If current word was removed from quiz, go to next or previous
+                    
+                    // Handle navigation after status change
+                    // If word was removed from current filter, navigate appropriately
                     if (AppState.quizWords.length === 0) {
+                        // No more words in current filter - show empty state
                         this.renderQuiz();
                     } else if (AppState.currentQuizIndex >= AppState.quizWords.length) {
-                        AppState.currentQuizIndex = AppState.quizWords.length - 1;
+                        // Current index is out of bounds - go to last word
+                        AppState.currentQuizIndex = Math.max(0, AppState.quizWords.length - 1);
                         this.renderQuiz();
                     } else {
-                        // Update chip states in case word is still in quiz
-                        const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
-                        if (updatedWord) {
-                            const updatedVocabWord = new VocabularyWord(updatedWord);
-                            const updatedStatus = updatedVocabWord.status || 'review-now';
-                            const updatedChips = quizCard.querySelectorAll('.quiz-status-chip');
-                            updatedChips.forEach(c => {
-                                const chipStatus = c.dataset.status;
-                                c.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
-                            });
+                        // Check if the current word (by ID) is still in the quiz list
+                        const wordStillInQuiz = AppState.quizWords.some(w => w.id === currentWord.id);
+                        
+                        if (!wordStillInQuiz && changingFromArchive) {
+                            // Word was changed from archived to review-now/check-later
+                            // Navigate to the appropriate filter to show the word
+                            if (status === 'review-now') {
+                                AppState.quizViewFilter = 'reviewNow';
+                            } else if (status === 'check-later') {
+                                AppState.quizViewFilter = 'checkLater';
+                            }
+                            AppState.saveSettings();
+                            AppState.updateQuizWords();
+                            AppState.currentQuizIndex = AppState.quizWords.findIndex(w => w.id === currentWord.id);
+                            if (AppState.currentQuizIndex === -1) {
+                                AppState.currentQuizIndex = 0;
+                            }
+                            this.renderQuiz();
+                        } else {
+                            // Word is still in quiz - update chip states
+                            const updatedWord = AppState.quizWords[AppState.currentQuizIndex];
+                            if (updatedWord) {
+                                const updatedVocabWord = new VocabularyWord(updatedWord);
+                                const updatedStatus = updatedVocabWord.status;
+                                const isActiveOnly = updatedVocabWord.isActive && updatedStatus === null;
+                                const updatedChips = quizCard.querySelectorAll('.quiz-status-chip');
+                                updatedChips.forEach(c => {
+                                    const chipStatus = c.dataset.status;
+                                    if (chipStatus === 'active') {
+                                        c.classList.toggle('quiz-status-chip-active', isActiveOnly);
+                                    } else {
+                                        c.classList.toggle('quiz-status-chip-active', chipStatus === updatedStatus);
+                                    }
+                                });
+                            } else {
+                                // Word was filtered out - re-render to show next word or empty state
+                                this.renderQuiz();
+                            }
                         }
                     }
                 }, 0);
@@ -2229,6 +2290,7 @@ const UI = {
         attachChipHandler(reviewNowChip, 'review-now');
         attachChipHandler(checkLaterChip, 'check-later');
         attachChipHandler(archivedChip, 'archived');
+        attachChipHandler(activeChip, 'active');
     },
 
     renderQuiz() {
@@ -2283,23 +2345,30 @@ const UI = {
         }
         
         // Update quiz status chips (mobile)
-        const currentStatus = currentVocabWord.status || 'review-now';
+        const currentStatus = currentVocabWord.status;
+        const isActiveOnly = currentVocabWord.isActive && currentStatus === null;
         const reviewNowChip = document.getElementById('quiz-status-review-now');
         const checkLaterChip = document.getElementById('quiz-status-check-later');
         const archivedChip = document.getElementById('quiz-status-archived');
+        const activeChip = document.getElementById('quiz-status-active');
         
         // Remove active class from all chips
-        [reviewNowChip, checkLaterChip, archivedChip].forEach(chip => {
+        [reviewNowChip, checkLaterChip, archivedChip, activeChip].forEach(chip => {
             if (chip) chip.classList.remove('quiz-status-chip-active');
         });
         
-        // Add active class to current status chip
-        if (currentStatus === 'review-now' && reviewNowChip) {
+        // Add active class to current status chip or Active chip
+        if (isActiveOnly && activeChip) {
+            activeChip.classList.add('quiz-status-chip-active');
+        } else if (currentStatus === 'review-now' && reviewNowChip) {
             reviewNowChip.classList.add('quiz-status-chip-active');
         } else if (currentStatus === 'check-later' && checkLaterChip) {
             checkLaterChip.classList.add('quiz-status-chip-active');
         } else if (currentStatus === 'archived' && archivedChip) {
             archivedChip.classList.add('quiz-status-chip-active');
+        } else if (!currentStatus && reviewNowChip) {
+            // Default to review-now if no status
+            reviewNowChip.classList.add('quiz-status-chip-active');
         }
         
         // Ensure event listeners are attached for quiz status chips (mobile)

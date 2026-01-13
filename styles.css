@@ -1601,6 +1601,18 @@ body {
     box-shadow: 0 2px 8px hsl(20, 15%, 45% / 0.3);
 }
 
+.quiz-status-chip-active-chip {
+    background: hsl(36, 40%, 85% / 0.4);
+    color: var(--muted-foreground);
+}
+
+.quiz-status-chip-active-chip.quiz-status-chip-active {
+    background: #6B8E6B; /* Light green when active */
+    color: white;
+    border-color: #6B8E6B;
+    box-shadow: 0 2px 8px hsl(120, 20%, 50% / 0.3);
+}
+
 .quiz-translation-container {
     margin-bottom: 1.5rem;
     width: 100%;
