@@ -957,15 +957,6 @@ const UI = {
         }
         
         // Mobile quiz navigation arrows
-        const prevQuizBtnMobile = document.getElementById('prevQuizBtnMobile');
-        if (prevQuizBtnMobile) {
-            prevQuizBtnMobile.addEventListener('click', () => this.prevQuizWord());
-        }
-        const nextQuizBtnMobile = document.getElementById('nextQuizBtnMobile');
-        if (nextQuizBtnMobile) {
-            nextQuizBtnMobile.addEventListener('click', () => this.nextQuizWord());
-        }
-        
         // Show hint button
         const quizShowHintBtn = document.getElementById('quizShowHintBtn');
         if (quizShowHintBtn) {
@@ -1073,8 +1064,7 @@ const UI = {
                 // Don't flip if clicking on buttons or expandable headers
                 if (e.target.closest('.quiz-show-hint-btn') || 
                     e.target.closest('.quiz-expandable-header') ||
-                    e.target.closest('.quiz-status-chip') ||
-                    e.target.closest('.quiz-nav-arrow')) {
+                    e.target.closest('.quiz-status-chip')) {
                     return;
                 }
                 quizCardFlipContainer.classList.toggle('flipped');
@@ -1082,21 +1072,6 @@ const UI = {
         }
         
         // Mobile expandable sections handlers
-        const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
-        if (quizExamplesBtnMobile) {
-            quizExamplesBtnMobile.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const content = document.getElementById('quiz-examples-content-mobile');
-                const icon = quizExamplesBtnMobile.querySelector('.toggle-icon');
-                if (content) {
-                    content.classList.toggle('hidden');
-                    if (icon) {
-                        icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
-                    }
-                }
-            });
-        }
-        
         const quizConjugationsBtnMobile = document.getElementById('quizConjugationsBtnMobile');
         if (quizConjugationsBtnMobile) {
             quizConjugationsBtnMobile.addEventListener('click', (e) => {
@@ -2527,27 +2502,6 @@ const UI = {
         }
         
         // Populate expandable sections on back
-        // Example sentences
-        const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
-        if (examplesContentMobile && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
-            examplesContentMobile.innerHTML = `
-                <ul>
-                    ${currentWord.exampleSentences.map(s => {
-                        const parts = s.split(/\n|\\n/);
-                        if (parts.length > 1) {
-                            return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
-                        } else {
-                            const match = s.match(/^(.+?)\s*\((.+?)\)$/);
-                            if (match) {
-                                return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
-                            }
-                            return `<li>${this.escapeHtml(s)}</li>`;
-                        }
-                    }).join('')}
-                </ul>
-            `;
-        }
-        
         // Conjugations (if verb)
         const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
         const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');

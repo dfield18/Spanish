@@ -2369,28 +2369,9 @@ body {
         padding: 2rem 1.5rem 5rem 1.5rem; /* Extra bottom padding for status chips */
     }
     
-    /* Navigation Arrows */
+    /* Navigation Arrows - Hidden on mobile */
     .quiz-nav-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: hsl(20, 15%, 45% / 0.5);
-        cursor: pointer;
-        padding: 0.5rem;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .quiz-nav-arrow-left {
-        left: 0.5rem;
-    }
-    
-    .quiz-nav-arrow-right {
-        right: 0.5rem;
+        display: none;
     }
     
     /* Show Hint Button */
@@ -2602,10 +2583,9 @@ body {
     .quiz-word {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
-        padding: 0 3rem; /* Space for arrows */
         text-align: center;
     }
-    
+
     #quizWordBack {
         font-size: 2.5rem;
         margin-bottom: 1.5rem;
@@ -2614,6 +2594,15 @@ body {
 
     .quiz-translation {
         font-size: 1.5rem;
+    }
+    
+    /* Hide reveal translation button on mobile */
+    .reveal-btn {
+        display: none !important;
+    }
+    
+    .quiz-translation-container {
+        display: none !important;
     }
     
     /* Hide desktop settings card on mobile */
@@ -2629,11 +2618,11 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        background: var(--card);
-        border-top: 1px solid hsl(20, 15%, 45% / 0.1);
-        padding: 0.5rem 0;
-        z-index: 1000;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Hide bottom nav on quiz page */
+    body.quiz-view-active .bottom-nav {
+        display: none;
     }
     
     .bottom-nav-btn {
@@ -2670,6 +2659,11 @@ body {
     body {
         padding-top: 110px; /* Space for fixed header (reduced since Review Only toggle removed) */
         padding-bottom: 70px; /* Space for bottom nav */
+    }
+    
+    /* Remove bottom padding when bottom nav is hidden (quiz page) */
+    body.quiz-view-active {
+        padding-bottom: 0;
     }
     
     /* Ensure container doesn't add extra margin on mobile */
