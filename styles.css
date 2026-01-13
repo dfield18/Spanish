@@ -2546,75 +2546,13 @@ body {
     
     /* Removed duplicate .quiz-card-flip-container.flipped .quiz-card-back rule - handled above at line 2499 */
     
-    /* Expandable sections on back - ensure they're never visible on front */
+    /* Expandable sections on back */
     .quiz-expandable-section {
         width: 100%;
         margin-top: 1rem;
     }
-    
-    /* CRITICAL: Hide ALL expandable sections by default - only show when explicitly flipped */
-    .quiz-card-back .quiz-expandable-section {
-        display: none !important;
-    }
-    
-    /* Only show expandable sections when card is flipped */
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
-        display: block !important;
-    }
-    
-    /* CRITICAL: Hide example sentences section when card is NOT flipped */
-    .quiz-card-flip-container:not(.flipped) .quiz-card-back #quizExampleSentencesMobile,
-    .quiz-card-flip-container:not(.flipped) .quiz-card-back .quiz-expandable-section,
-    /* Also hide when parent is hidden */
-    .quiz-card-back:not(:has(.quiz-card-flip-container.flipped)) #quizExampleSentencesMobile,
-    /* Hide by default - only show when explicitly flipped */
-    #quizExampleSentencesMobile {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        position: absolute !important;
-        z-index: -9999 !important;
-        height: 0 !important;
-        width: 0 !important;
-        overflow: hidden !important;
-        clip: rect(0, 0, 0, 0) !important;
-        clip-path: inset(100%) !important;
-        transform: scale(0) !important;
-    }
-    
-    /* CRITICAL: When parent is hidden, ensure children are completely removed from flow */
-    .quiz-card-back[style*="display: none"],
-    .quiz-card-back[style*="display:none"] {
-        display: none !important;
-    }
-    
-    .quiz-card-back[style*="display: none"] *,
-    .quiz-card-back[style*="display:none"] * {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        height: 0 !important;
-        width: 0 !important;
-        overflow: hidden !important;
-        clip: rect(0, 0, 0, 0) !important;
-        clip-path: inset(100%) !important;
-    }
-    
-    /* Only show when card is flipped */
-    .quiz-card-flip-container.flipped .quiz-card-back #quizExampleSentencesMobile {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        position: relative !important;
-        z-index: auto !important;
-        height: auto !important;
-        width: 100% !important;
-        overflow: visible !important;
-    }
-    
-    /* Hide example sentences section when card is not flipped - multiple layers of protection */
+
+    /* Hide back card and all its children when not flipped */
     .quiz-card-flip-container:not(.flipped) .quiz-card-back,
     .quiz-card-flip-container:not(.flipped) .quiz-card-back * {
         display: none !important;
@@ -2622,31 +2560,24 @@ body {
         opacity: 0 !important;
         pointer-events: none !important;
     }
-    
-    /* Show example sentences section when card is flipped */
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    /* CRITICAL: Show all children of quiz-card-back when flipped (desktop) */
+
+    /* Show back card children when flipped */
     .quiz-card-flip-container.flipped .quiz-card-back * {
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
     }
-    
+
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
+        display: block !important;
+    }
+
     .quiz-card-flip-container.flipped .quiz-card-back #quizWordBack {
         display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
-    
+
     .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-header {
         display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
     
     .quiz-expandable-header {
