@@ -39,6 +39,7 @@
                     </p>
                 </div>
             </div>
+            <button id="quizModeBtnMobile" class="quiz-mode-btn-mobile">Quiz Mode</button>
             <nav class="header-nav">
                 <button id="homeBtn" class="nav-tab active">Dashboard</button>
                 <button id="quizBtn" class="nav-tab">Quiz Mode</button>
@@ -122,6 +123,15 @@
             <div class="vocabulary-section">
                 <div class="vocabulary-header">
                     <h2 class="vocabulary-title">Your Vocabulary <span class="vocab-count" id="vocabCount">(8)</span></h2>
+                    <div class="vocabulary-header-dropdown-mobile">
+                        <select id="viewFilterDropdownMobile" class="view-filter-dropdown-mobile">
+                            <option value="reviewNow" selected>Review Now</option>
+                            <option value="all">All Words</option>
+                            <option value="active">Active</option>
+                            <option value="archive">Archive</option>
+                            <option value="checkLater">Check Later</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="vocabularyList" class="vocabulary-list">
                     <!-- Vocabulary cards will be inserted here -->

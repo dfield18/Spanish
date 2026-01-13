@@ -713,6 +713,14 @@ const UI = {
             });
         }
         
+        // Mobile Quiz Mode button in header
+        const quizModeBtnMobile = document.getElementById('quizModeBtnMobile');
+        if (quizModeBtnMobile) {
+            quizModeBtnMobile.addEventListener('click', () => {
+                this.showView('quiz');
+            });
+        }
+        
         // Navigation - Desktop and Mobile
         document.getElementById('homeBtn').addEventListener('click', (e) => {
             e.preventDefault();
@@ -1080,7 +1088,20 @@ const UI = {
                     e.target.closest('.quiz-nav-arrow')) {
                     return;
                 }
-                quizCardFlipContainer.classList.toggle('flipped');
+                const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
+                
+                // Show/hide example sentences based on flip state
+                const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
+                if (examplesSectionMobile) {
+                    const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                    if (isFlipped && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+                        // Card is flipped - show example sentences if they exist
+                        examplesSectionMobile.classList.remove('hidden');
+                    } else {
+                        // Card is not flipped - hide example sentences
+                        examplesSectionMobile.classList.add('hidden');
+                    }
+                }
             });
         }
         
@@ -1126,13 +1147,14 @@ const UI = {
         const quizBtn = document.getElementById('quizBtn');
         const bottomHomeBtn = document.getElementById('bottomHomeBtn');
         const bottomQuizBtn = document.getElementById('bottomQuizBtn');
+        const quizModeBtnMobile = document.getElementById('quizModeBtnMobile');
         
         // Remove active from all views
         if (homeView) homeView.classList.remove('active');
         if (quizView) quizView.classList.remove('active');
         
         // Remove active from all navigation buttons (desktop and mobile)
-        [homeBtn, quizBtn, bottomHomeBtn, bottomQuizBtn].forEach(btn => {
+        [homeBtn, quizBtn, bottomHomeBtn, bottomQuizBtn, quizModeBtnMobile].forEach(btn => {
             if (btn) {
                 btn.classList.remove('active');
                 btn.className = btn.className.replace(/\bactive\b/g, '').trim();
@@ -1156,6 +1178,7 @@ const UI = {
             // Ensure quiz buttons are NOT active
             if (quizBtn) quizBtn.classList.remove('active');
             if (bottomQuizBtn) bottomQuizBtn.classList.remove('active');
+            if (quizModeBtnMobile) quizModeBtnMobile.classList.remove('active');
             this.render();
         } else if (view === 'quiz') {
             document.body.classList.add('quiz-view-active');
@@ -2540,25 +2563,38 @@ const UI = {
         }
         
         // Populate expandable sections on back
-        // Example sentences
+        // Example sentences - only populate, don't show until card is flipped
+        const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
         const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
-        if (examplesContentMobile && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
-            examplesContentMobile.innerHTML = `
-                <ul>
-                    ${currentWord.exampleSentences.map(s => {
-                        const parts = s.split(/\n|\\n/);
-                        if (parts.length > 1) {
-                            return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
-                        } else {
-                            const match = s.match(/^(.+?)\s*\((.+?)\)$/);
-                            if (match) {
-                                return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
+        if (currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+            // Always populate the content, but keep section hidden until flipped
+            if (examplesContentMobile) {
+                examplesContentMobile.innerHTML = `
+                    <ul>
+                        ${currentWord.exampleSentences.map(s => {
+                            const parts = s.split(/\n|\\n/);
+                            if (parts.length > 1) {
+                                return `<li>${this.escapeHtml(parts[0])}<br><span class="translation-line">${this.escapeHtml(parts[1])}</span></li>`;
+                            } else {
+                                const match = s.match(/^(.+?)\s*\((.+?)\)$/);
+                                if (match) {
+                                    return `<li>${this.escapeHtml(match[1])}<br><span class="translation-line">(${this.escapeHtml(match[2])})</span></li>`;
+                                }
+                                return `<li>${this.escapeHtml(s)}</li>`;
                             }
-                            return `<li>${this.escapeHtml(s)}</li>`;
-                        }
-                    }).join('')}
-                </ul>
-            `;
+                        }).join('')}
+                    </ul>
+                `;
+            }
+            // Hide the section initially - it will show when card is flipped
+            if (examplesSectionMobile) {
+                examplesSectionMobile.classList.add('hidden');
+            }
+        } else {
+            // No example sentences - hide the section
+            if (examplesSectionMobile) {
+                examplesSectionMobile.classList.add('hidden');
+            }
         }
         
         // Conjugations (if verb)

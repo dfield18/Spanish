@@ -495,6 +495,11 @@ body {
     margin-bottom: 1.5rem;
 }
 
+/* Hide mobile dropdown on desktop */
+.vocabulary-header-dropdown-mobile {
+    display: none;
+}
+
 .vocabulary-title {
     font-family: 'Playfair Display', serif;
     font-size: 1.5rem;
@@ -2016,7 +2021,7 @@ body {
 @media (max-width: 768px) {
     .main-header {
         flex-direction: row;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 0.75rem;
         padding: 0.75rem 1rem;
@@ -2046,11 +2051,7 @@ body {
     
     /* Mobile view dropdown in header - positioned top right */
     .header-view-dropdown-mobile {
-        position: absolute;
-        top: 0.75rem;
-        right: 1rem;
-        width: auto;
-        min-width: 140px;
+        display: none !important; /* Moved to vocabulary-header on mobile */
     }
     
     /* Quiz filter dropdown in header - hidden by default, shown when in quiz view */
@@ -2070,12 +2071,12 @@ body {
     
     /* Hide homepage dropdown when quiz view is active */
     body.quiz-view-active .header-view-dropdown-mobile {
-        display: none;
+        display: none !important;
     }
     
-    /* Show homepage dropdown when home view is active */
+    /* Show homepage dropdown when home view is active - now moved to vocabulary-header */
     body.home-view-active .header-view-dropdown-mobile {
-        display: block;
+        display: none !important;
     }
     
     /* Hide quiz filter dropdown when home view is active */
@@ -2254,9 +2255,19 @@ body {
     }
 
     .vocabulary-header {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         gap: 1rem;
+    }
+    
+    .vocabulary-header-dropdown-mobile {
+        display: block;
+    }
+    
+    .vocabulary-header-dropdown-mobile .view-filter-dropdown-mobile {
+        width: auto;
+        min-width: 140px;
     }
 
     .settings-card {
@@ -2661,6 +2672,56 @@ body {
     
     .quiz-translation-container {
         display: none !important;
+    }
+    
+    /* Hide Give Mnemonics Hint button on mobile */
+    .hint-btn {
+        display: none !important;
+    }
+    
+    .quiz-hint-container {
+        display: none !important;
+    }
+    
+    /* Hide Previous Word and Next Word buttons on mobile (keep arrows) */
+    .prev-btn,
+    .next-btn {
+        display: none !important;
+    }
+    
+    /* Show Quiz Mode button in header on mobile */
+    .quiz-mode-btn-mobile {
+        display: block !important;
+        padding: 0.5rem 1rem;
+        background: var(--terracotta);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    
+    .quiz-mode-btn-mobile:hover {
+        background: var(--terracotta-dark);
+        transform: translateY(-1px);
+    }
+    
+    .quiz-mode-btn-mobile:active {
+        transform: translateY(0);
+    }
+    
+    /* Hide bottom navigation on mobile dashboard */
+    body.home-view-active .bottom-nav {
+        display: none !important;
+    }
+    
+    /* Remove bottom padding when bottom nav is hidden on dashboard */
+    body.home-view-active {
+        padding-bottom: 0 !important;
     }
     
     /* Hide desktop settings card on mobile */
