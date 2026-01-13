@@ -2705,6 +2705,37 @@ body {
     }
     
     /* Make expandable sections narrower on mobile to avoid covering arrows */
+    /* Ensure quiz card back is hidden on front - mobile specific */
+    .quiz-card-back {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        display: none !important;
+    }
+    
+    .quiz-card-flip-container.flipped .quiz-card-back {
+        visibility: visible !important;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        display: flex !important;
+    }
+    
+    /* Hide all children of quiz-card-back when not flipped */
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back,
+    .quiz-card-flip-container:not(.flipped) .quiz-card-back * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Show expandable sections only when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
     .quiz-expandable-section {
         width: calc(100% - 4rem); /* Leave space for arrows (2rem on each side) */
         margin-left: auto;
