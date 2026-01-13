@@ -2773,14 +2773,15 @@ body {
         z-index: 1 !important;
     }
     
-    /* CRITICAL: Show ALL children of quiz-card-back when flipped */
+    /* CRITICAL: Show ALL children of quiz-card-back when flipped - override everything */
     .quiz-card-flip-container.flipped .quiz-card-back * {
+        display: revert !important;
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
     }
     
-    /* Ensure specific elements are visible when flipped */
+    /* Ensure specific elements are visible when flipped with explicit display values */
     .quiz-card-flip-container.flipped .quiz-card-back #quizWordBack {
         display: block !important;
         visibility: visible !important;
@@ -2800,6 +2801,13 @@ body {
     }
     
     .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-content {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Override any inline styles that might be set */
+    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section.hidden {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;

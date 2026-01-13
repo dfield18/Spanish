@@ -1104,7 +1104,13 @@ const UI = {
                         
                         // CRITICAL: Show all children when flipped
                         const quizWordBack = document.getElementById('quizWordBack');
+                        const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                        
                         if (quizWordBack) {
+                            // Remove any inline styles first, then set with !important
+                            quizWordBack.style.removeProperty('display');
+                            quizWordBack.style.removeProperty('visibility');
+                            quizWordBack.style.removeProperty('opacity');
                             quizWordBack.style.setProperty('display', 'block', 'important');
                             quizWordBack.style.setProperty('visibility', 'visible', 'important');
                             quizWordBack.style.setProperty('opacity', '1', 'important');
@@ -1113,6 +1119,11 @@ const UI = {
                         // Show example sentences section if it exists and has content
                         const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
                         if (examplesSectionMobile && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+                            // Remove inline styles first, then show
+                            examplesSectionMobile.classList.remove('hidden');
+                            examplesSectionMobile.style.removeProperty('display');
+                            examplesSectionMobile.style.removeProperty('visibility');
+                            examplesSectionMobile.style.removeProperty('opacity');
                             examplesSectionMobile.style.setProperty('display', 'block', 'important');
                             examplesSectionMobile.style.setProperty('visibility', 'visible', 'important');
                             examplesSectionMobile.style.setProperty('opacity', '1', 'important');
@@ -1120,9 +1131,14 @@ const UI = {
                         
                         // Show conjugations section if it exists and word is a verb
                         const conjugationsSectionMobile = document.getElementById('quizConjugationsMobile');
-                        if (conjugationsSectionMobile) {
+                        if (conjugationsSectionMobile && currentWord) {
                             const currentVocabWord = new VocabularyWord(currentWord);
                             if (currentVocabWord.conjugations) {
+                                // Remove inline styles first, then show
+                                conjugationsSectionMobile.classList.remove('hidden');
+                                conjugationsSectionMobile.style.removeProperty('display');
+                                conjugationsSectionMobile.style.removeProperty('visibility');
+                                conjugationsSectionMobile.style.removeProperty('opacity');
                                 conjugationsSectionMobile.style.setProperty('display', 'block', 'important');
                                 conjugationsSectionMobile.style.setProperty('visibility', 'visible', 'important');
                                 conjugationsSectionMobile.style.setProperty('opacity', '1', 'important');
@@ -2646,11 +2662,13 @@ const UI = {
         const quizExamplesBtnMobile = document.getElementById('quizExamplesBtnMobile');
         
         // Always hide example sentences section initially (on front of card)
+        // Don't set inline styles - let CSS handle it via .quiz-card-back being hidden
         if (examplesSectionMobile) {
             examplesSectionMobile.classList.add('hidden');
-            examplesSectionMobile.style.display = 'none';
-            examplesSectionMobile.style.visibility = 'hidden';
-            examplesSectionMobile.style.opacity = '0';
+            // Ensure no conflicting inline styles
+            examplesSectionMobile.style.removeProperty('display');
+            examplesSectionMobile.style.removeProperty('visibility');
+            examplesSectionMobile.style.removeProperty('opacity');
         }
         
         // Collapse example sentences content when navigating to new card
