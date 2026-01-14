@@ -1090,6 +1090,7 @@ const UI = {
                     return;
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
+                console.log('Card flipped, isFlipped:', isFlipped);
 
                 // CRITICAL: Manage quizCardBack and quizCardFront visibility directly via inline styles
                 // This ensures they're hidden/shown correctly on mobile regardless of CSS
@@ -1098,14 +1099,18 @@ const UI = {
 
                 if (quizCardBack) {
                     if (isFlipped) {
+                        console.log('Showing back card...');
                         quizCardBack.style.setProperty('display', 'flex', 'important');
                         quizCardBack.style.setProperty('visibility', 'visible', 'important');
                         quizCardBack.style.setProperty('opacity', '1', 'important');
-                        
+
                         // CRITICAL: Show all children when flipped
                         const quizWordBack = document.getElementById('quizWordBack');
                         const currentWord = AppState.quizWords[AppState.currentQuizIndex];
-                        
+
+                        console.log('Current word:', currentWord);
+                        console.log('quizWordBack element:', quizWordBack);
+
                         if (quizWordBack) {
                             // Remove any inline styles first, then set with !important
                             quizWordBack.style.removeProperty('display');
@@ -1114,11 +1119,19 @@ const UI = {
                             quizWordBack.style.setProperty('display', 'block', 'important');
                             quizWordBack.style.setProperty('visibility', 'visible', 'important');
                             quizWordBack.style.setProperty('opacity', '1', 'important');
+                            console.log('Set quizWordBack styles:', {
+                                display: quizWordBack.style.display,
+                                computed: window.getComputedStyle(quizWordBack).display
+                            });
                         }
-                        
+
                         // Show example sentences section if it exists and has content
                         const examplesSectionMobile = document.getElementById('quizExampleSentencesMobile');
+                        console.log('examplesSectionMobile:', examplesSectionMobile);
+                        console.log('Has example sentences?', currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0);
+
                         if (examplesSectionMobile && currentWord && currentWord.exampleSentences && currentWord.exampleSentences.length > 0) {
+                            console.log('Showing example sentences...');
                             // Remove inline styles first, then show
                             examplesSectionMobile.classList.remove('hidden');
                             examplesSectionMobile.style.removeProperty('display');
@@ -1127,6 +1140,10 @@ const UI = {
                             examplesSectionMobile.style.setProperty('display', 'block', 'important');
                             examplesSectionMobile.style.setProperty('visibility', 'visible', 'important');
                             examplesSectionMobile.style.setProperty('opacity', '1', 'important');
+                            console.log('Example sentences styles:', {
+                                display: examplesSectionMobile.style.display,
+                                computed: window.getComputedStyle(examplesSectionMobile).display
+                            });
                         }
                         
                         // Show conjugations section if it exists and word is a verb
