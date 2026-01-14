@@ -2792,37 +2792,6 @@ body {
     }
     
     /* Ensure specific elements are visible when flipped with explicit display values */
-    .quiz-card-flip-container.flipped .quiz-card-back #quizWordBack {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-header {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-content {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    /* Override any inline styles that might be set */
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section.hidden {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
     /* Hide quiz card front when flipped */
     .quiz-card-flip-container.flipped .quiz-card-front {
         display: none !important;
@@ -2832,14 +2801,7 @@ body {
         position: absolute !important;
         z-index: -1 !important;
     }
-    
-    /* Show expandable sections only when card is flipped */
-    .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-section {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
+
     .quiz-expandable-section {
         width: calc(100% - 4rem); /* Leave space for arrows (2rem on each side) */
         margin-left: auto;
