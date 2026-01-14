@@ -2515,6 +2515,7 @@ body {
     
     /* Only show back when flipped - must come AFTER the default hide rule */
     .quiz-card-flip-container.flipped .quiz-card-back {
+        transform: rotateY(0deg); /* CRITICAL: Face forward when flipped */
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
