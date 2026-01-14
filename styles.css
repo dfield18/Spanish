@@ -2563,6 +2563,7 @@ body {
 
     /* Show back card children when flipped */
     .quiz-card-flip-container.flipped .quiz-card-back * {
+        display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
@@ -2579,7 +2580,12 @@ body {
     .quiz-card-flip-container.flipped .quiz-card-back .quiz-expandable-header {
         display: flex !important;
     }
-    
+
+    /* Keep hidden elements hidden even when flipped */
+    .quiz-card-flip-container.flipped .quiz-card-back .hidden {
+        display: none !important;
+    }
+
     .quiz-expandable-header {
         width: 100%;
         display: flex;
