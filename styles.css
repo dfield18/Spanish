@@ -2721,9 +2721,15 @@ body {
     .quiz-icon-btn {
         display: none;
     }
-    
+
     .quiz-toggle-group {
         display: none; /* Hide toggles on mobile */
+    }
+
+    /* CRITICAL: Hide entire desktop quiz actions container on mobile */
+    /* This prevents desktop Example Sentences from showing on flip card */
+    .quiz-actions {
+        display: none !important;
     }
 
     .quiz-card {

@@ -1090,7 +1090,6 @@ const UI = {
                     return;
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
-                console.log('=== CARD FLIPPED ===', {isFlipped});
 
                 // CRITICAL: Manage quizCardBack and quizCardFront visibility directly via inline styles
                 // This ensures they're hidden/shown correctly on mobile regardless of CSS
@@ -2547,15 +2546,10 @@ const UI = {
     },
 
     renderQuiz() {
-        console.log('=== renderQuiz() called ===');
         // CRITICAL: Set card visibility FIRST before anything else to prevent flash
         const quizCardBack = document.getElementById('quizCardBack');
         const quizCardFront = document.getElementById('quizCardFront');
         const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
-
-        console.log('Initial state:', {
-            hasFlippedClass: quizCardFlipContainer?.classList.contains('flipped')
-        });
 
         // Immediately hide back and show front to prevent Example Sentences from showing
         // Use setProperty with 'important' flag to override CSS !important rules
@@ -2579,26 +2573,7 @@ const UI = {
         }
         if (quizCardFlipContainer) {
             quizCardFlipContainer.classList.remove('flipped');
-            console.log('Removed flipped class');
         }
-
-        // Check Example Sentences state after initial hide
-        setTimeout(() => {
-            const exSec = document.getElementById('quizExampleSentencesMobile');
-            if (exSec) {
-                const styles = window.getComputedStyle(exSec);
-                const bounds = exSec.getBoundingClientRect();
-                console.log('Example Sentences after initial hide (100ms):', {
-                    display: styles.display,
-                    visibility: styles.visibility,
-                    opacity: styles.opacity,
-                    isActuallyVisible: bounds.width > 0 && bounds.height > 0,
-                    bounds: bounds,
-                    flippedClass: quizCardFlipContainer?.classList.contains('flipped'),
-                    parentDisplay: window.getComputedStyle(exSec.parentElement).display
-                });
-            }
-        }, 100);
 
         // Sync quiz filter dropdowns (desktop and mobile)
         const quizViewFilterDropdown = document.getElementById('quizViewFilterDropdown');
