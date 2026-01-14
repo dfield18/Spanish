@@ -1104,6 +1104,15 @@ const UI = {
                         quizCardBack.style.setProperty('visibility', 'visible', 'important');
                         quizCardBack.style.setProperty('opacity', '1', 'important');
 
+                        // CRITICAL: Remove hiding inline styles from ALL children so CSS can control them
+                        const allBackChildren = quizCardBack.querySelectorAll('*');
+                        allBackChildren.forEach(child => {
+                            child.style.removeProperty('display');
+                            child.style.removeProperty('visibility');
+                            child.style.removeProperty('opacity');
+                            child.style.removeProperty('z-index');
+                        });
+
                         // CRITICAL: Show all children when flipped
                         const quizWordBack = document.getElementById('quizWordBack');
                         const currentWord = AppState.quizWords[AppState.currentQuizIndex];
