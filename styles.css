@@ -45,6 +45,8 @@ body {
     min-height: 100vh;
     padding: 0;
     line-height: 1.6;
+    touch-action: manipulation; /* Prevent double-tap zoom on mobile */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 /* Background Decorations */
