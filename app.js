@@ -1104,6 +1104,21 @@ const UI = {
                         quizCardBack.style.setProperty('visibility', 'visible', 'important');
                         quizCardBack.style.setProperty('opacity', '1', 'important');
 
+                        // Debug the back card container itself
+                        const backBounds = quizCardBack.getBoundingClientRect();
+                        const backComputed = window.getComputedStyle(quizCardBack);
+                        console.log('quizCardBack container:', {
+                            bounds: backBounds,
+                            hasSize: backBounds.width > 0 && backBounds.height > 0,
+                            display: backComputed.display,
+                            flexDirection: backComputed.flexDirection,
+                            alignItems: backComputed.alignItems,
+                            justifyContent: backComputed.justifyContent,
+                            overflow: backComputed.overflow,
+                            color: backComputed.color,
+                            backgroundColor: backComputed.backgroundColor
+                        });
+
                         // CRITICAL: Remove hiding inline styles from ALL children so CSS can control them
                         const allBackChildren = quizCardBack.querySelectorAll('*');
                         allBackChildren.forEach(child => {
@@ -1128,9 +1143,21 @@ const UI = {
                             quizWordBack.style.setProperty('display', 'block', 'important');
                             quizWordBack.style.setProperty('visibility', 'visible', 'important');
                             quizWordBack.style.setProperty('opacity', '1', 'important');
-                            console.log('Set quizWordBack styles:', {
-                                display: quizWordBack.style.display,
-                                computed: window.getComputedStyle(quizWordBack).display
+
+                            const bounds = quizWordBack.getBoundingClientRect();
+                            const computed = window.getComputedStyle(quizWordBack);
+                            console.log('quizWordBack FULL debug:', {
+                                textContent: quizWordBack.textContent,
+                                innerHTML: quizWordBack.innerHTML,
+                                bounds: bounds,
+                                isActuallyVisible: bounds.width > 0 && bounds.height > 0,
+                                color: computed.color,
+                                fontSize: computed.fontSize,
+                                fontFamily: computed.fontFamily,
+                                zIndex: computed.zIndex,
+                                position: computed.position,
+                                top: computed.top,
+                                left: computed.left
                             });
                         }
 
