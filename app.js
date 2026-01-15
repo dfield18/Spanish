@@ -1856,12 +1856,14 @@ const UI = {
     render() {
         if (AppState.currentView !== 'home') return;
 
-        // Focus quick add input
+        // Focus quick add input (but not when user is interacting with dropdowns)
         const quickAddInput = document.getElementById('quickAddInput');
         if (quickAddInput && document.activeElement !== quickAddInput) {
-            // Only focus if no other input is focused
+            // Only focus if no other input/select is focused
             setTimeout(() => {
-                if (document.activeElement.tagName !== 'INPUT') {
+                const activeTag = document.activeElement.tagName;
+                // Don't auto-focus if user is interacting with a SELECT (dropdown) or INPUT
+                if (activeTag !== 'INPUT' && activeTag !== 'SELECT') {
                     quickAddInput.focus();
                 }
             }, 100);
