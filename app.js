@@ -1327,14 +1327,16 @@ const UI = {
                 try {
                     // Use OpenAI to detect language and handle typos
                     const wordData = await OpenAI.generateWordData(wordText);
-                    
+
                     const vocabWord = new VocabularyWord({
                         ...wordData,
                         masteryLevel: 'review',
                         review: true,
                         reviewCount: 0,
                         streak: 0,
-                        nextReview: new Date()
+                        nextReview: new Date(),
+                        status: 'review-now', // Set new words to Review Now by default so they appear in default view
+                        reviewNow: true
                     });
 
                     // Check for duplicates before adding
