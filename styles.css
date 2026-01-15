@@ -217,9 +217,9 @@ body {
 
 /* Settings Card */
 .settings-card {
-    position: sticky;
-    top: 88px; /* Header height + margin */
-    z-index: 99;
+    position: static; /* Changed from sticky to prevent blocking */
+    top: auto;
+    z-index: auto; /* Remove high z-index */
     background: var(--card);
     border-radius: 1rem;
     padding: 1.5rem;
