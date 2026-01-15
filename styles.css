@@ -2399,12 +2399,25 @@ body {
         transition: color 0.2s ease;
     }
     
+    /* Gray arrows for front and back of cards */
+    .quiz-nav-arrow-gray {
+        color: hsl(20, 15%, 45% / 0.6) !important;
+    }
+    
     .quiz-nav-arrow:hover {
         color: hsl(20, 15%, 45% / 0.8);
     }
     
+    .quiz-nav-arrow-gray:hover {
+        color: hsl(20, 15%, 45% / 0.9) !important;
+    }
+    
     .quiz-nav-arrow:active {
         color: var(--terracotta);
+    }
+    
+    .quiz-nav-arrow-gray:active {
+        color: hsl(20, 15%, 45% / 1) !important;
     }
     
     .quiz-nav-arrow-left {
@@ -2413,6 +2426,11 @@ body {
     
     .quiz-nav-arrow-right {
         right: 0.5rem;
+    }
+    
+    /* Ensure arrows on card faces are positioned correctly */
+    .quiz-card-face .quiz-nav-arrow {
+        z-index: 20; /* Higher z-index to be above card content */
     }
     
     /* Show Hint Text */

@@ -1,5 +1,14 @@
 // Configuration - Set your OpenAI API key here for local development
 // IMPORTANT: Never commit this file with your API key to version control!
+// 
+// The API key can be set in multiple ways (checked in order):
+// 1. CONFIG.OPENAI_API_KEY below (hardcoded)
+// 2. window.OPENAI_API_KEY (set in browser console)
+// 3. localStorage.getItem('openai_api_key') (saved via Settings UI)
+//
+// Note: For static file servers (like python3 -m http.server), environment variables
+// are not available because JavaScript runs in the browser, not on the server.
+// Use localStorage (via Settings UI) or hardcode here for local development.
 const CONFIG = {
     OPENAI_API_KEY: '' // Enter your OpenAI API key here, e.g., 'sk-...'
 };
@@ -954,6 +963,7 @@ const UI = {
         
         // Mobile quiz navigation arrows
         // Mobile quiz navigation arrows
+        // Mobile quiz navigation arrows (outside flip container - keep for backward compatibility)
         const prevQuizBtnMobile = document.getElementById('prevQuizBtnMobile');
         if (prevQuizBtnMobile) {
             prevQuizBtnMobile.addEventListener('click', () => this.prevQuizWord());
@@ -961,6 +971,38 @@ const UI = {
         const nextQuizBtnMobile = document.getElementById('nextQuizBtnMobile');
         if (nextQuizBtnMobile) {
             nextQuizBtnMobile.addEventListener('click', () => this.nextQuizWord());
+        }
+        
+        // Navigation arrows on front of card
+        const prevQuizBtnMobileFront = document.getElementById('prevQuizBtnMobileFront');
+        if (prevQuizBtnMobileFront) {
+            prevQuizBtnMobileFront.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                this.prevQuizWord();
+            });
+        }
+        const nextQuizBtnMobileFront = document.getElementById('nextQuizBtnMobileFront');
+        if (nextQuizBtnMobileFront) {
+            nextQuizBtnMobileFront.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                this.nextQuizWord();
+            });
+        }
+        
+        // Navigation arrows on back of card
+        const prevQuizBtnMobileBack = document.getElementById('prevQuizBtnMobileBack');
+        if (prevQuizBtnMobileBack) {
+            prevQuizBtnMobileBack.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                this.prevQuizWord();
+            });
+        }
+        const nextQuizBtnMobileBack = document.getElementById('nextQuizBtnMobileBack');
+        if (nextQuizBtnMobileBack) {
+            nextQuizBtnMobileBack.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                this.nextQuizWord();
+            });
         }
         
         // Show hint text
@@ -1073,7 +1115,11 @@ const UI = {
                     e.target.closest('.quiz-hint-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
                     e.target.closest('.quiz-status-chip') ||
-                    e.target.closest('.quiz-nav-arrow')) {
+                    e.target.closest('.quiz-nav-arrow') ||
+                    e.target.closest('#prevQuizBtnMobileFront') ||
+                    e.target.closest('#nextQuizBtnMobileFront') ||
+                    e.target.closest('#prevQuizBtnMobileBack') ||
+                    e.target.closest('#nextQuizBtnMobileBack')) {
                     return;
                 }
                 const isFlipped = quizCardFlipContainer.classList.toggle('flipped');
