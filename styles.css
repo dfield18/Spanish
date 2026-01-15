@@ -2389,7 +2389,6 @@ body {
         transform: translateY(-50%);
         background: none;
         border: none;
-        color: hsl(20, 15%, 45% / 0.5);
         cursor: pointer;
         padding: 0.5rem;
         z-index: 10;
@@ -2399,25 +2398,17 @@ body {
         transition: color 0.2s ease;
     }
     
-    /* Gray arrows for front and back of cards */
+    /* Light gray arrows for front and back of cards */
     .quiz-nav-arrow-gray {
-        color: hsl(20, 15%, 45% / 0.6) !important;
-    }
-    
-    .quiz-nav-arrow:hover {
-        color: hsl(20, 15%, 45% / 0.8);
+        color: hsl(0, 0%, 60%) !important; /* Light gray */
     }
     
     .quiz-nav-arrow-gray:hover {
-        color: hsl(20, 15%, 45% / 0.9) !important;
-    }
-    
-    .quiz-nav-arrow:active {
-        color: var(--terracotta);
+        color: hsl(0, 0%, 50%) !important; /* Slightly darker gray on hover */
     }
     
     .quiz-nav-arrow-gray:active {
-        color: hsl(20, 15%, 45% / 1) !important;
+        color: hsl(0, 0%, 40%) !important; /* Darker gray when active */
     }
     
     .quiz-nav-arrow-left {

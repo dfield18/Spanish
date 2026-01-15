@@ -33,6 +33,9 @@ class VocabularyWord {
         this.archived = data.archived !== undefined ? data.archived : false; // Archive status
         this.checkLater = data.checkLater !== undefined ? data.checkLater : false; // Check later status
         
+        // isActive: all words should be active (true) AND in one status list
+        this.isActive = data.isActive !== undefined ? data.isActive : true;
+        
         // Simplified status system - each word has exactly ONE status:
         // null (Active - default), 'review-now', 'check-later', or 'archived'
         if (data.status !== undefined) {
@@ -961,18 +964,6 @@ const UI = {
             });
         }
         
-        // Mobile quiz navigation arrows
-        // Mobile quiz navigation arrows
-        // Mobile quiz navigation arrows (outside flip container - keep for backward compatibility)
-        const prevQuizBtnMobile = document.getElementById('prevQuizBtnMobile');
-        if (prevQuizBtnMobile) {
-            prevQuizBtnMobile.addEventListener('click', () => this.prevQuizWord());
-        }
-        const nextQuizBtnMobile = document.getElementById('nextQuizBtnMobile');
-        if (nextQuizBtnMobile) {
-            nextQuizBtnMobile.addEventListener('click', () => this.nextQuizWord());
-        }
-        
         // Navigation arrows on front of card
         const prevQuizBtnMobileFront = document.getElementById('prevQuizBtnMobileFront');
         if (prevQuizBtnMobileFront) {
@@ -1381,6 +1372,7 @@ const UI = {
                         reviewCount: 0,
                         streak: 0,
                         nextReview: new Date(),
+                        isActive: true, // All words should be active
                         status: 'review-now', // Set new words to Review Now by default so they appear in default view
                         reviewNow: true
                     });
@@ -1513,7 +1505,10 @@ const UI = {
                 review: true,
                 reviewCount: 0,
                 streak: 0,
-                nextReview: new Date()
+                nextReview: new Date(),
+                isActive: true, // All words should be active
+                status: 'review-now', // Set new words to Review Now by default
+                reviewNow: true
             });
 
             // Check for duplicates before adding
@@ -1945,16 +1940,28 @@ const UI = {
                         if (wordIndex !== -1) {
                             const currentWord = AppState.words[wordIndex];
                             currentWord.status = status;
+                            currentWord.isActive = true; // All words should be active
                             currentWord.reviewNow = status === 'review-now';
                             currentWord.checkLater = status === 'check-later';
                             currentWord.archived = status === 'archived';
                             currentWord.review = status !== 'archived';
+                        }
+                        
+                        // Check if word should still be visible in current filter
+                        // If not, re-render to remove it from view
+                        const shouldBeVisible = this.shouldWordBeVisible(word.id, status);
+                        if (!shouldBeVisible && AppState.currentView === 'home') {
+                            // Word is no longer in current filter, re-render to remove it
+                            requestAnimationFrame(() => {
+                                this.render();
+                            });
                         }
 
                         // Defer all heavy operations (storage, quiz updates, badge) to avoid blocking UI
                         setTimeout(() => {
                             const updates = {
                                 status: status,
+                                isActive: true, // All words should be active
                                 reviewNow: status === 'review-now',
                                 checkLater: status === 'check-later',
                                 archived: status === 'archived',
@@ -2019,9 +2026,9 @@ const UI = {
         }
 
         // Deselect Active chip when a status is selected
-        const activeButton = card.querySelector(`#active-btn-${wordId}`);
+        const activeButton = card.querySelector(`#status-active-${wordId}`);
         if (activeButton && newStatus !== null) {
-            activeButton.classList.remove('vocab-active-chip-active');
+            activeButton.classList.remove('vocab-status-chip-active');
         }
         
         // Update card inactive state based on status if needed
@@ -2036,7 +2043,57 @@ const UI = {
         }
     },
     
-    // updateCardActiveState removed - Active is now a status button like the others
+    // Check if a word should be visible in the current filter view
+    shouldWordBeVisible(wordId, newStatus) {
+        // Get the word to check reviewOnly filter
+        const word = AppState.words.find(w => w.id === wordId);
+        if (!word) return false;
+        
+        const vocabWord = new VocabularyWord(word);
+        const currentFilter = AppState.viewFilter;
+        
+        // If filter is 'all', word is always visible (unless reviewOnly filter applies)
+        if (currentFilter === 'all') {
+            // If reviewOnly is enabled, check if word qualifies
+            if (AppState.reviewOnly) {
+                return vocabWord.review === true && vocabWord.status !== 'archived';
+            }
+            return true;
+        }
+        
+        // Check if word matches current filter
+        if (currentFilter === 'active' && newStatus === null) {
+            // If reviewOnly is enabled, check if word qualifies
+            if (AppState.reviewOnly) {
+                return vocabWord.review === true && vocabWord.status !== 'archived';
+            }
+            return true;
+        }
+        if (currentFilter === 'reviewNow' && newStatus === 'review-now') {
+            // If reviewOnly is enabled, check if word qualifies
+            if (AppState.reviewOnly) {
+                return vocabWord.review === true && vocabWord.status !== 'archived';
+            }
+            return true;
+        }
+        if (currentFilter === 'checkLater' && newStatus === 'check-later') {
+            // If reviewOnly is enabled, check if word qualifies
+            if (AppState.reviewOnly) {
+                return vocabWord.review === true && vocabWord.status !== 'archived';
+            }
+            return true;
+        }
+        if (currentFilter === 'archive' && newStatus === 'archived') {
+            // Archived words are never shown when reviewOnly is enabled
+            if (AppState.reviewOnly) {
+                return false;
+            }
+            return true;
+        }
+        
+        // Word doesn't match current filter
+        return false;
+    },
 
     renderWordCard(word, index) {
         const vocabWord = new VocabularyWord(word); // Ensure it has all methods
@@ -2414,12 +2471,8 @@ const UI = {
             quizCard.classList.add('hidden');
             const prevBtn = document.getElementById('prevQuizBtn');
             const nextBtn = document.getElementById('nextQuizBtn');
-            const prevBtnMobile = document.getElementById('prevQuizBtnMobile');
-            const nextBtnMobile = document.getElementById('nextQuizBtnMobile');
             if (prevBtn) prevBtn.classList.add('hidden');
             if (nextBtn) nextBtn.classList.add('hidden');
-            if (prevBtnMobile) prevBtnMobile.classList.add('hidden');
-            if (nextBtnMobile) nextBtnMobile.classList.add('hidden');
             quizEmpty.classList.remove('hidden');
             return;
         }
@@ -3629,7 +3682,10 @@ const UI = {
                 partOfSpeech: wordData.partOfSpeech,
                 exampleSentences: wordData.exampleSentences || [],
                 conjugations: wordData.conjugations || null,
-                hint: wordData.hint || []
+                hint: wordData.hint || [],
+                isActive: true, // All words should be active
+                status: 'review-now', // Set new words to Review Now by default
+                reviewNow: true
             });
             
             const words = Storage.addWord(newWord);
