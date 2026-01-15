@@ -1430,6 +1430,13 @@ body {
     display: block;
 }
 
+/* CRITICAL: Ensure quiz view elements don't block interactions when view is hidden */
+#quizView:not(.active),
+#quizView:not(.active) * {
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
 .quiz-header {
     margin-bottom: 1rem;
     padding: 0.9rem 1.5rem;
