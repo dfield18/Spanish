@@ -1225,6 +1225,21 @@ const UI = {
             });
         }
         
+        // Collapse example sentences when clicking inside the expanded content
+        const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
+        if (examplesContentMobile) {
+            examplesContentMobile.addEventListener('click', (e) => {
+                // Only collapse if content is expanded (not hidden)
+                if (!examplesContentMobile.classList.contains('hidden')) {
+                    examplesContentMobile.classList.add('hidden');
+                    const icon = quizExamplesBtnMobile?.querySelector('.toggle-icon');
+                    if (icon) {
+                        icon.textContent = '▼';
+                    }
+                }
+            });
+        }
+        
         const quizConjugationsBtnMobile = document.getElementById('quizConjugationsBtnMobile');
         if (quizConjugationsBtnMobile) {
             quizConjugationsBtnMobile.addEventListener('click', (e) => {
@@ -1235,6 +1250,21 @@ const UI = {
                     content.classList.toggle('hidden');
                     if (icon) {
                         icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+                    }
+                }
+            });
+        }
+        
+        // Collapse conjugations when clicking inside the expanded content
+        const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');
+        if (conjugationsContentMobile) {
+            conjugationsContentMobile.addEventListener('click', (e) => {
+                // Only collapse if content is expanded (not hidden)
+                if (!conjugationsContentMobile.classList.contains('hidden')) {
+                    conjugationsContentMobile.classList.add('hidden');
+                    const icon = quizConjugationsBtnMobile?.querySelector('.toggle-icon');
+                    if (icon) {
+                        icon.textContent = '▼';
                     }
                 }
             });
