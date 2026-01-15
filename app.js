@@ -1101,10 +1101,11 @@ const UI = {
         const quizCardFlipContainer = document.getElementById('quizCardFlipContainer');
         if (quizCardFlipContainer) {
             quizCardFlipContainer.addEventListener('click', (e) => {
-                // Don't flip if clicking on buttons or expandable headers
+                // Don't flip if clicking on buttons, expandable headers, or expandable content
                 if (e.target.closest('.quiz-show-hint-text') || 
                     e.target.closest('.quiz-hint-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
+                    e.target.closest('.quiz-expandable-content') ||
                     e.target.closest('.quiz-status-chip') ||
                     e.target.closest('.quiz-nav-arrow') ||
                     e.target.closest('#prevQuizBtnMobileFront') ||
@@ -1229,6 +1230,7 @@ const UI = {
         const examplesContentMobile = document.getElementById('quiz-examples-content-mobile');
         if (examplesContentMobile) {
             examplesContentMobile.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
                 // Only collapse if content is expanded (not hidden)
                 if (!examplesContentMobile.classList.contains('hidden')) {
                     examplesContentMobile.classList.add('hidden');
@@ -1259,6 +1261,7 @@ const UI = {
         const conjugationsContentMobile = document.getElementById('quiz-conjugations-content-mobile');
         if (conjugationsContentMobile) {
             conjugationsContentMobile.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
                 // Only collapse if content is expanded (not hidden)
                 if (!conjugationsContentMobile.classList.contains('hidden')) {
                     conjugationsContentMobile.classList.add('hidden');
