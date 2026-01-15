@@ -2273,7 +2273,9 @@ body {
     }
 
     .settings-card {
-        top: 120px; /* Adjusted for mobile header height */
+        position: static; /* Remove sticky positioning on mobile */
+        top: auto;
+        z-index: auto; /* Remove high z-index that blocks content */
         padding: 1rem; /* Reduced from 1.5rem */
         margin-bottom: 1rem; /* Reduced from 2rem */
     }
@@ -2898,7 +2900,9 @@ body {
     
     /* Hide desktop settings card on mobile */
     .settings-card {
-        display: none;
+        display: none !important;
+        position: static !important; /* Ensure no sticky positioning */
+        z-index: auto !important; /* Remove any z-index */
     }
     
     
