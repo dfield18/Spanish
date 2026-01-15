@@ -2495,11 +2495,19 @@ body {
         pointer-events: none !important;
     }
     
-    /* Front face: show by default */
-    .quiz-card-front {
+    /* Front face: show only when quiz view is active */
+    .view.active .quiz-card-front {
         transform: rotateY(0deg);
         display: flex;
         z-index: 10; /* Ensure front is on top when not flipped */
+    }
+
+    /* Hide quiz cards when quiz view is not active */
+    .view:not(.active) .quiz-card-front,
+    .view:not(.active) .quiz-card-back {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
     
     /* Back face: ALWAYS hidden by default - only show when flipped */
