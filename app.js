@@ -787,16 +787,16 @@ const UI = {
             });
         }
 
-        // View filter dropdown (Mobile)
-        const viewFilterDropdownMobile = document.getElementById('viewFilterDropdownMobile');
-        if (viewFilterDropdownMobile) {
-            viewFilterDropdownMobile.addEventListener('change', (e) => {
+        // View filter dropdown (Mobile) - handle all mobile dropdowns (there may be duplicates)
+        const viewFilterDropdownMobiles = document.querySelectorAll('#viewFilterDropdownMobile');
+        viewFilterDropdownMobiles.forEach(dropdown => {
+            dropdown.addEventListener('change', (e) => {
                 AppState.viewFilter = e.target.value;
                 AppState.saveSettings();
                 this.syncViewDropdowns();
                 this.render();
             });
-        }
+        });
 
         // Modal controls
         // Add Word button removed - using quick add input instead
@@ -1300,9 +1300,12 @@ const UI = {
     syncViewDropdowns() {
         // Sync desktop and mobile dropdowns
         const viewFilterDropdown = document.getElementById('viewFilterDropdown');
-        const viewFilterDropdownMobile = document.getElementById('viewFilterDropdownMobile');
+        // Handle multiple mobile dropdowns (if they exist)
+        const viewFilterDropdownMobiles = document.querySelectorAll('#viewFilterDropdownMobile');
         if (viewFilterDropdown) viewFilterDropdown.value = AppState.viewFilter;
-        if (viewFilterDropdownMobile) viewFilterDropdownMobile.value = AppState.viewFilter;
+        viewFilterDropdownMobiles.forEach(dropdown => {
+            dropdown.value = AppState.viewFilter;
+        });
     },
 
     async handleQuickAddWord() {
@@ -2248,6 +2251,7 @@ const UI = {
                     
                     // Update status - null for Active, otherwise the specific status
                     vocabWord.status = status;
+                    vocabWord.isActive = true; // All words should be active
                     vocabWord.reviewNow = status === 'review-now';
                     vocabWord.checkLater = status === 'check-later';
                     vocabWord.archived = status === 'archived';
@@ -2258,6 +2262,7 @@ const UI = {
                 setTimeout(() => {
                     const updates = {
                         status: status,
+                        isActive: true, // All words should be active
                         reviewNow: status === 'review-now',
                         checkLater: status === 'check-later',
                         archived: status === 'archived',
