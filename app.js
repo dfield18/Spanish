@@ -1971,11 +1971,11 @@ const UI = {
         if (activeChip) {
             activeChip.classList.add('vocab-status-chip-active');
         }
-        
+
         // Deselect Active chip when a status is selected
-        const activeChip = card.querySelector(`#active-btn-${wordId}`);
-        if (activeChip && newStatus !== null) {
-            activeChip.classList.remove('vocab-active-chip-active');
+        const activeButton = card.querySelector(`#active-btn-${wordId}`);
+        if (activeButton && newStatus !== null) {
+            activeButton.classList.remove('vocab-active-chip-active');
         }
         
         // Update card inactive state based on status if needed
