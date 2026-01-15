@@ -217,9 +217,9 @@ body {
 
 /* Settings Card */
 .settings-card {
-    position: static; /* Changed from sticky to prevent blocking */
-    top: auto;
-    z-index: auto; /* Remove high z-index */
+    position: sticky;
+    top: 88px; /* Header height + margin */
+    z-index: 99;
     background: var(--card);
     border-radius: 1rem;
     padding: 1.5rem;
@@ -1430,13 +1430,6 @@ body {
     display: block;
 }
 
-/* CRITICAL: Ensure quiz view elements don't block interactions when view is hidden */
-#quizView:not(.active),
-#quizView:not(.active) * {
-    pointer-events: none !important;
-    visibility: hidden !important;
-}
-
 .quiz-header {
     margin-bottom: 1rem;
     padding: 0.9rem 1.5rem;
@@ -2280,9 +2273,7 @@ body {
     }
 
     .settings-card {
-        position: static; /* Remove sticky positioning on mobile */
-        top: auto;
-        z-index: auto; /* Remove high z-index that blocks content */
+        top: 120px; /* Adjusted for mobile header height */
         padding: 1rem; /* Reduced from 1.5rem */
         margin-bottom: 1rem; /* Reduced from 2rem */
     }
@@ -2907,9 +2898,7 @@ body {
     
     /* Hide desktop settings card on mobile */
     .settings-card {
-        display: none !important;
-        position: static !important; /* Ensure no sticky positioning */
-        z-index: auto !important; /* Remove any z-index */
+        display: none;
     }
     
     
