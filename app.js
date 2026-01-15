@@ -677,9 +677,11 @@ const AppState = {
                 return vocabWord.status === 'review-now';
             });
         }
-        // If viewFilter is 'all', show all words (no filtering)
+        // If viewFilter is 'all', show all words (no status filtering)
 
-        if (this.reviewOnly) {
+        // Apply reviewOnly filter only if NOT viewing 'all' words
+        // When 'all' is selected, show ALL words regardless of reviewOnly toggle
+        if (this.reviewOnly && this.viewFilter !== 'all') {
             filtered = filtered.filter(w => {
                 const vocabWord = w instanceof VocabularyWord ? w : new VocabularyWord(w);
                 // Show only words that have review enabled and are not archived
