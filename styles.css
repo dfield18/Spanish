@@ -2481,6 +2481,32 @@ body {
         margin-bottom: 0.75rem;
     }
     
+    /* Second Hint Button (Mobile) */
+    .show-second-hint-btn-mobile {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        margin-top: 0.75rem;
+        background: hsl(20, 15%, 45% / 0.1);
+        color: var(--terracotta);
+        border: 1px solid var(--terracotta);
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    
+    .show-second-hint-btn-mobile:hover {
+        background: hsl(20, 15%, 45% / 0.15);
+        transform: translateY(-1px);
+    }
+    
+    .show-second-hint-btn-mobile:active {
+        transform: translateY(0);
+    }
+    
     /* Regenerate Hint Button (Mobile) */
     .regenerate-hint-btn-mobile {
         width: 100%;
@@ -2685,6 +2711,13 @@ body {
         
         .quiz-expandable-content {
             width: 100%;
+        }
+        
+        /* Make example sentences content wider when expanded */
+        .quiz-expandable-content:not(.hidden) {
+            width: calc(100% + 2rem); /* Wider when expanded */
+            margin-left: -1rem; /* Shift left to center the wider content */
+            margin-right: -1rem;
         }
     }
     

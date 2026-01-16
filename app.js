@@ -1062,8 +1062,19 @@ const UI = {
                                 if (vocabWord.hintImage) {
                                     hintHtml += `<img src="${this.escapeHtml(vocabWord.hintImage)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
                                 }
-                                hintHtml += hints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
+                                // Show only the first hint initially
+                                if (hints.length > 0) {
+                                    hintHtml += `<p>${this.escapeHtml(hints[0])}</p>`;
+                                }
                                 hintContainer.innerHTML = hintHtml;
+                                
+                                // Show second hint button if there's a second hint
+                                const showSecondHintBtn = document.getElementById('showSecondHintBtnMobile');
+                                if (hints.length > 1 && showSecondHintBtn) {
+                                    showSecondHintBtn.classList.remove('hidden');
+                                    // Store the second hint in a data attribute
+                                    showSecondHintBtn.dataset.secondHint = hints[1];
+                                }
                             } else {
                                 hintContainer.innerHTML = '<p>No hint available</p>';
                             }
@@ -1081,8 +1092,32 @@ const UI = {
                             if (regenerateBtn) {
                                 regenerateBtn.classList.add('hidden');
                             }
+                            // Hide second hint button
+                            const showSecondHintBtn = document.getElementById('showSecondHintBtnMobile');
+                            if (showSecondHintBtn) {
+                                showSecondHintBtn.classList.add('hidden');
+                            }
                         }
                     }
+                }
+            });
+        }
+        
+        // Show second hint button (mobile)
+        const showSecondHintBtnMobile = document.getElementById('showSecondHintBtnMobile');
+        if (showSecondHintBtnMobile) {
+            showSecondHintBtnMobile.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                const secondHint = showSecondHintBtnMobile.dataset.secondHint;
+                if (secondHint) {
+                    // Add the second hint to the hint container
+                    const hintContainer = document.getElementById('quizHintMobile');
+                    if (hintContainer) {
+                        const secondHintHtml = `<p>${this.escapeHtml(secondHint)}</p>`;
+                        hintContainer.innerHTML += secondHintHtml;
+                    }
+                    // Hide the second hint button after showing it
+                    showSecondHintBtnMobile.classList.add('hidden');
                 }
             });
         }
@@ -1103,8 +1138,9 @@ const UI = {
         const quizHintMobile = document.getElementById('quizHintMobile');
         if (quizHintMobile) {
             quizHintMobile.addEventListener('click', (e) => {
-                // Don't collapse if clicking on the regenerate button
-                if (e.target.closest('.regenerate-hint-btn-mobile')) {
+                // Don't collapse if clicking on the regenerate button or second hint button
+                if (e.target.closest('.regenerate-hint-btn-mobile') || 
+                    e.target.closest('.show-second-hint-btn-mobile')) {
                     return;
                 }
                 e.stopPropagation(); // Prevent card flip
@@ -1113,6 +1149,7 @@ const UI = {
                 if (!quizHintMobile.classList.contains('hidden')) {
                     const quizShowHintText = document.getElementById('quizShowHintText');
                     const regenerateBtn = document.getElementById('regenerateHintBtnMobile');
+                    const showSecondHintBtn = document.getElementById('showSecondHintBtnMobile');
                     
                     // Hide hint
                     quizHintMobile.classList.add('hidden');
@@ -1122,6 +1159,10 @@ const UI = {
                     // Hide regenerate button
                     if (regenerateBtn) {
                         regenerateBtn.classList.add('hidden');
+                    }
+                    // Hide second hint button
+                    if (showSecondHintBtn) {
+                        showSecondHintBtn.classList.add('hidden');
                     }
                 }
             });
@@ -1207,6 +1248,7 @@ const UI = {
                 if (e.target.closest('.quiz-show-hint-text') || 
                     e.target.closest('.quiz-hint-mobile') ||
                     e.target.closest('.hint-image-mobile') ||
+                    e.target.closest('.show-second-hint-btn-mobile') ||
                     e.target.closest('.regenerate-hint-btn-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
                     e.target.closest('.quiz-expandable-content') ||
@@ -2679,11 +2721,19 @@ const UI = {
         // Reset hint display
         const quizShowHintText = document.getElementById('quizShowHintText');
         const quizHintMobile = document.getElementById('quizHintMobile');
+        const regenerateHintBtnMobile = document.getElementById('regenerateHintBtnMobile');
+        const showSecondHintBtnMobile = document.getElementById('showSecondHintBtnMobile');
         if (quizShowHintText) {
             quizShowHintText.textContent = 'Show hint';
         }
         if (quizHintMobile) {
             quizHintMobile.classList.add('hidden');
+        }
+        if (regenerateHintBtnMobile) {
+            regenerateHintBtnMobile.classList.add('hidden');
+        }
+        if (showSecondHintBtnMobile) {
+            showSecondHintBtnMobile.classList.add('hidden');
         }
         
         // Populate expandable sections on back
@@ -3205,6 +3255,7 @@ const UI = {
                 
                 // Update the hint display in mobile quiz view
                 const hintContainerMobile = document.getElementById('quizHintMobile');
+                const showSecondHintBtnMobile = document.getElementById('showSecondHintBtnMobile');
                 if (hintContainerMobile && !hintContainerMobile.classList.contains('hidden')) {
                     let hintsHtml = '';
                     // Add image if available (use existing image or newly generated one)
@@ -3212,8 +3263,17 @@ const UI = {
                     if (imageToUse) {
                         hintsHtml += `<img src="${this.escapeHtml(imageToUse)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
                     }
-                    hintsHtml += newHints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
+                    // Show only the first hint initially
+                    if (newHints.length > 0) {
+                        hintsHtml += `<p>${this.escapeHtml(newHints[0])}</p>`;
+                    }
                     hintContainerMobile.innerHTML = hintsHtml;
+                    
+                    // Show second hint button if there's a second hint
+                    if (newHints.length > 1 && showSecondHintBtnMobile) {
+                        showSecondHintBtnMobile.classList.remove('hidden');
+                        showSecondHintBtnMobile.dataset.secondHint = newHints[1];
+                    }
                 }
             } else {
                 throw new Error('No hints generated');
