@@ -53,6 +53,7 @@ class VocabularyWord {
         this.partOfSpeech = data.partOfSpeech || '';
         this.conjugations = data.conjugations || null; // null if not a verb, object with tenses if verb
         this.hint = Array.isArray(data.hint) ? data.hint : (data.hint ? [data.hint] : []); // Array of 2 mnemonic hints for quiz mode
+        this.hintImage = data.hintImage || null; // URL or base64 data for mnemonic hint illustration
         
         // Spaced Repetition Fields
         this.masteryLevel = data.masteryLevel || 'review'; // 'review' or 'completed'
@@ -377,12 +378,26 @@ Return ONLY valid JSON, no additional text.`;
             
             // Generate two mnemonic hints for quiz mode
             let hints = [];
+            let hintImage = null;
             try {
                 hints = await this.generateMnemonicHint(
                     content.english,
                     content.spanish,
                     content.partOfSpeech
                 );
+                // Generate image for the first hint if hints were generated
+                if (hints.length > 0) {
+                    try {
+                        hintImage = await this.generateMnemonicHintImage(
+                            content.english,
+                            content.spanish,
+                            hints[0]
+                        );
+                    } catch (imageError) {
+                        console.error('Error generating hint image during word creation:', imageError);
+                        // Continue without image if generation fails
+                    }
+                }
             } catch (error) {
                 console.error('Error generating hints during word creation:', error);
                 // Continue without hints if generation fails
@@ -395,7 +410,8 @@ Return ONLY valid JSON, no additional text.`;
                 partOfSpeech: content.partOfSpeech,
                 exampleSentences: content.exampleSentences || [],
                 conjugations: content.isVerb ? content.conjugations : null,
-                hint: hints
+                hint: hints,
+                hintImage: hintImage
             };
         } catch (error) {
             console.error('OpenAI API error:', error);
@@ -549,6 +565,35 @@ Return ONLY valid JSON, no additional text.`;
             return hints.slice(0, 2); // Ensure we only return up to 2 hints
         } catch (error) {
             console.error('OpenAI API error:', error);
+            throw error;
+        }
+    },
+
+    async generateMnemonicHintImage(englishWord, spanishWord, mnemonicHint) {
+        // Create a prompt for a simple black and white cartoon illustration
+        // Escape the hint text to prevent issues
+        const escapedHint = String(mnemonicHint).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        const escapedSpanish = String(spanishWord).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        const escapedEnglish = String(englishWord).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        
+        const prompt = `A simple, clean black and white cartoon illustration showing a visual mnemonic for remembering the Spanish word "${escapedSpanish}" (which means "${escapedEnglish}" in English). The illustration should visually represent the mnemonic hint: "${escapedHint}". Style: simple line art, black and white only, cartoon style, educational illustration, clear and easy to understand, minimalist design.`;
+        
+        try {
+            const data = await this.makeApiRequest('https://api.openai.com/v1/images/generations', {
+                model: 'dall-e-3',
+                prompt: prompt,
+                n: 1,
+                size: '1024x1024',
+                quality: 'standard',
+                style: 'natural'
+            });
+
+            if (data.data && data.data.length > 0 && data.data[0].url) {
+                return data.data[0].url;
+            }
+            throw new Error('No image generated');
+        } catch (error) {
+            console.error('OpenAI Image Generation error:', error);
             throw error;
         }
     }
@@ -1005,24 +1050,51 @@ const UI = {
                 const currentWord = AppState.quizWords[AppState.currentQuizIndex];
                 if (currentWord) {
                     const hintContainer = document.getElementById('quizHintMobile');
+                    const regenerateBtn = document.getElementById('regenerateHintBtnMobile');
                     if (hintContainer) {
                         if (hintContainer.classList.contains('hidden')) {
                             // Show hint
                             const vocabWord = new VocabularyWord(currentWord);
                             const hints = vocabWord.hint || [];
                             if (hints.length > 0) {
-                                hintContainer.innerHTML = hints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
+                                let hintHtml = '';
+                                // Add image if available
+                                if (vocabWord.hintImage) {
+                                    hintHtml += `<img src="${this.escapeHtml(vocabWord.hintImage)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
+                                }
+                                hintHtml += hints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
+                                hintContainer.innerHTML = hintHtml;
                             } else {
                                 hintContainer.innerHTML = '<p>No hint available</p>';
                             }
                             hintContainer.classList.remove('hidden');
                             quizShowHintText.textContent = 'Hide hint';
+                            // Show regenerate button
+                            if (regenerateBtn) {
+                                regenerateBtn.classList.remove('hidden');
+                            }
                         } else {
                             // Hide hint
                             hintContainer.classList.add('hidden');
                             quizShowHintText.textContent = 'Show hint';
+                            // Hide regenerate button
+                            if (regenerateBtn) {
+                                regenerateBtn.classList.add('hidden');
+                            }
                         }
                     }
+                }
+            });
+        }
+        
+        // Regenerate hint button (mobile)
+        const regenerateHintBtnMobile = document.getElementById('regenerateHintBtnMobile');
+        if (regenerateHintBtnMobile) {
+            regenerateHintBtnMobile.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card flip
+                const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+                if (currentWord) {
+                    this.regenerateHints(currentWord.id);
                 }
             });
         }
@@ -1106,6 +1178,7 @@ const UI = {
                 // Don't flip if clicking on buttons, expandable headers, or expandable content
                 if (e.target.closest('.quiz-show-hint-text') || 
                     e.target.closest('.quiz-hint-mobile') ||
+                    e.target.closest('.regenerate-hint-btn-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
                     e.target.closest('.quiz-expandable-content') ||
                     e.target.closest('.quiz-status-chip') ||
@@ -2927,7 +3000,12 @@ const UI = {
         if (isCurrentlyHidden) {
             if (vocabWord.hint && vocabWord.hint.length > 0) {
                 // Use saved hints - display both hints in expandable format
-                const hintsHtml = vocabWord.hint.map((hint, index) => 
+                let hintsHtml = '';
+                // Add image if available
+                if (vocabWord.hintImage) {
+                    hintsHtml += `<img src="${this.escapeHtml(vocabWord.hintImage)}" alt="Mnemonic hint illustration" class="hint-image" />`;
+                }
+                hintsHtml += vocabWord.hint.map((hint, index) => 
                     `<p><strong>Hint ${index + 1}:</strong> ${this.escapeHtml(hint)}</p>`
                 ).join('');
                 
@@ -3029,8 +3107,10 @@ const UI = {
         const word = AppState.words[wordIndex];
         const vocabWord = new VocabularyWord(word);
         
-        // Get the regenerate button and disable it
+        // Get the regenerate buttons (desktop and mobile) and disable them
         const regenerateBtn = document.getElementById(`regenerate-hints-${wordId}`);
+        const regenerateBtnMobile = document.getElementById('regenerateHintBtnMobile');
+        
         if (regenerateBtn) {
             regenerateBtn.disabled = true;
             regenerateBtn.innerHTML = `
@@ -3044,6 +3124,11 @@ const UI = {
             `;
         }
         
+        if (regenerateBtnMobile) {
+            regenerateBtnMobile.disabled = true;
+            regenerateBtnMobile.textContent = 'Generating...';
+        }
+        
         try {
             // Generate new hints using OpenAI
             const newHints = await OpenAI.generateMnemonicHint(
@@ -3053,19 +3138,48 @@ const UI = {
             );
             
             if (newHints && newHints.length > 0) {
-                // Update the word with new hints
-                const updatedWords = Storage.updateWord(wordId, { hint: newHints });
+                // Generate image for the first hint
+                let hintImageUrl = null;
+                try {
+                    hintImageUrl = await OpenAI.generateMnemonicHintImage(
+                        vocabWord.english,
+                        vocabWord.spanish,
+                        newHints[0]
+                    );
+                } catch (imageError) {
+                    console.error('Error generating hint image:', imageError);
+                    // Continue without image if generation fails
+                }
+                
+                // Update the word with new hints and image
+                const updates = { hint: newHints };
+                if (hintImageUrl) {
+                    updates.hintImage = hintImageUrl;
+                }
+                const updatedWords = Storage.updateWord(wordId, updates);
                 AppState.words = updatedWords.map(w => new VocabularyWord(w));
                 
                 // Update the quiz words array if this word is in it
                 AppState.updateQuizWords();
                 
-                // Refresh the hint display - ensure container is visible first
+                // Refresh the hint display - ensure container is visible first (desktop)
                 const hintContainer = document.getElementById('quizHint');
                 if (hintContainer) {
                     hintContainer.classList.remove('hidden');
                 }
                 this.giveHint();
+                
+                // Update the hint display in mobile quiz view
+                const hintContainerMobile = document.getElementById('quizHintMobile');
+                if (hintContainerMobile && !hintContainerMobile.classList.contains('hidden')) {
+                    let hintsHtml = '';
+                    // Add image if available
+                    if (hintImageUrl) {
+                        hintsHtml += `<img src="${this.escapeHtml(hintImageUrl)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
+                    }
+                    hintsHtml += newHints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
+                    hintContainerMobile.innerHTML = hintsHtml;
+                }
             } else {
                 throw new Error('No hints generated');
             }
@@ -3073,7 +3187,7 @@ const UI = {
             console.error('Error regenerating hints:', error);
             alert('Failed to regenerate hints. Please check your OpenAI API key and try again.');
             
-            // Re-enable button
+            // Re-enable buttons
             if (regenerateBtn) {
                 regenerateBtn.disabled = false;
                 regenerateBtn.innerHTML = `
@@ -3084,6 +3198,11 @@ const UI = {
                     </svg>
                     Regenerate Hints
                 `;
+            }
+            
+            if (regenerateBtnMobile) {
+                regenerateBtnMobile.disabled = false;
+                regenerateBtnMobile.textContent = 'Regenerate hint';
             }
         }
     },

@@ -2465,6 +2465,54 @@ body {
         margin-bottom: 0;
     }
     
+    /* Hint Image Styling */
+    .hint-image,
+    .hint-image-mobile {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid hsl(20, 15%, 45% / 0.2);
+    }
+    
+    .hint-image-mobile {
+        max-width: 100%;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Regenerate Hint Button (Mobile) */
+    .regenerate-hint-btn-mobile {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        margin-top: 0.75rem;
+        background: var(--terracotta);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    
+    .regenerate-hint-btn-mobile:hover {
+        background: var(--terracotta-dark);
+        transform: translateY(-1px);
+    }
+    
+    .regenerate-hint-btn-mobile:active {
+        transform: translateY(0);
+    }
+    
+    .regenerate-hint-btn-mobile:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
     /* Flip Instruction */
     .quiz-flip-instruction {
         font-family: 'Inter', sans-serif;
