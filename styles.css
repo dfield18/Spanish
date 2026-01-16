@@ -326,6 +326,49 @@ body {
     box-shadow: 0 0 0 3px hsl(20 70% 50% / 0.1);
 }
 
+.settings-row:has(.generate-images-btn) {
+    justify-content: center;
+}
+
+.generate-images-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: var(--terracotta);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+    box-shadow: 0 2px 8px hsl(16, 70%, 50% / 0.2);
+}
+
+.generate-images-btn:hover:not(:disabled) {
+    background: var(--terracotta-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(16, 70%, 50% / 0.3);
+}
+
+.generate-images-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.generate-images-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.generate-images-btn svg {
+    flex-shrink: 0;
+}
+
 .review-badge {
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;

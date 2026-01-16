@@ -845,6 +845,14 @@ const UI = {
             });
         });
 
+        // Generate all hint images button
+        const generateAllHintImagesBtn = document.getElementById('generateAllHintImagesBtn');
+        if (generateAllHintImagesBtn) {
+            generateAllHintImagesBtn.addEventListener('click', () => {
+                this.generateAllHintImages();
+            });
+        }
+
         // Modal controls
         // Add Word button removed - using quick add input instead
 
@@ -3298,6 +3306,108 @@ const UI = {
             if (regenerateBtnMobile) {
                 regenerateBtnMobile.disabled = false;
                 regenerateBtnMobile.textContent = 'Regenerate hint';
+            }
+        }
+    },
+
+    async generateAllHintImages() {
+        const generateBtn = document.getElementById('generateAllHintImagesBtn');
+        const generateBtnText = document.getElementById('generateAllHintImagesBtnText');
+        
+        if (!generateBtn) return;
+        
+        // Find all words without hint images
+        const wordsNeedingImages = AppState.words.filter(word => {
+            const vocabWord = word instanceof VocabularyWord ? word : new VocabularyWord(word);
+            return !vocabWord.hintImage && vocabWord.hint && vocabWord.hint.length > 0;
+        });
+        
+        if (wordsNeedingImages.length === 0) {
+            alert('All words already have hint images!');
+            return;
+        }
+        
+        // Disable button and show progress
+        generateBtn.disabled = true;
+        const originalText = generateBtnText ? generateBtnText.textContent : 'Generate Hint Images';
+        if (generateBtnText) {
+            generateBtnText.textContent = `Generating ${wordsNeedingImages.length} images...`;
+        }
+        
+        let successCount = 0;
+        let failCount = 0;
+        
+        // Generate images sequentially to avoid rate limiting
+        for (let i = 0; i < wordsNeedingImages.length; i++) {
+            const word = wordsNeedingImages[i];
+            const vocabWord = word instanceof VocabularyWord ? word : new VocabularyWord(word);
+            
+            // Update progress
+            if (generateBtnText) {
+                generateBtnText.textContent = `Generating ${i + 1}/${wordsNeedingImages.length}...`;
+            }
+            
+            try {
+                // Use the first hint if available
+                const hintText = vocabWord.hint && vocabWord.hint.length > 0 ? vocabWord.hint[0] : '';
+                
+                if (!hintText) {
+                    console.warn(`Word ${vocabWord.english} has no hint text, skipping image generation`);
+                    failCount++;
+                    continue;
+                }
+                
+                // Generate image
+                const hintImageUrl = await OpenAI.generateMnemonicHintImage(
+                    vocabWord.english,
+                    vocabWord.spanish,
+                    hintText
+                );
+                
+                if (hintImageUrl) {
+                    // Update the word with the new image
+                    const updatedWords = Storage.updateWord(vocabWord.id, { hintImage: hintImageUrl });
+                    AppState.words = updatedWords.map(w => new VocabularyWord(w));
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (error) {
+                console.error(`Error generating image for ${vocabWord.english}:`, error);
+                failCount++;
+            }
+            
+            // Small delay between requests to avoid rate limiting
+            if (i < wordsNeedingImages.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+        
+        // Update quiz words if needed
+        AppState.updateQuizWords();
+        
+        // Re-enable button and show completion message
+        generateBtn.disabled = false;
+        if (generateBtnText) {
+            generateBtnText.textContent = originalText;
+        }
+        
+        // Show completion message
+        const message = `Image generation complete!\n\nSuccessfully generated: ${successCount}\nFailed: ${failCount}`;
+        alert(message);
+        
+        // Refresh the display if we're on the quiz page and viewing a word that was updated
+        if (AppState.currentView === 'quiz') {
+            const currentWord = AppState.quizWords[AppState.currentQuizIndex];
+            if (currentWord && wordsNeedingImages.some(w => {
+                const ww = w instanceof VocabularyWord ? w : new VocabularyWord(w);
+                return ww.id === currentWord.id;
+            })) {
+                // Refresh the hint display if it's currently visible
+                const hintContainerMobile = document.getElementById('quizHintMobile');
+                if (hintContainerMobile && !hintContainerMobile.classList.contains('hidden')) {
+                    this.giveHint();
+                }
             }
         }
     },
