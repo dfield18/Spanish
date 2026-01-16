@@ -369,6 +369,11 @@ body {
     flex-shrink: 0;
 }
 
+.generate-images-section {
+    margin-bottom: 1rem;
+    display: none; /* Hidden on desktop (button is in settings card) */
+}
+
 .review-badge {
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
@@ -3042,6 +3047,10 @@ body {
         display: none;
     }
     
+    /* Show generate images section on mobile */
+    .generate-images-section {
+        display: block;
+    }
     
     /* Bottom Navigation */
     .bottom-nav {
