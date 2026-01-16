@@ -1099,6 +1099,34 @@ const UI = {
             });
         }
         
+        // Collapse hint when clicking on the expanded hint content or image (mobile)
+        const quizHintMobile = document.getElementById('quizHintMobile');
+        if (quizHintMobile) {
+            quizHintMobile.addEventListener('click', (e) => {
+                // Don't collapse if clicking on the regenerate button
+                if (e.target.closest('.regenerate-hint-btn-mobile')) {
+                    return;
+                }
+                e.stopPropagation(); // Prevent card flip
+                
+                // Only collapse if hint is currently visible (not hidden)
+                if (!quizHintMobile.classList.contains('hidden')) {
+                    const quizShowHintText = document.getElementById('quizShowHintText');
+                    const regenerateBtn = document.getElementById('regenerateHintBtnMobile');
+                    
+                    // Hide hint
+                    quizHintMobile.classList.add('hidden');
+                    if (quizShowHintText) {
+                        quizShowHintText.textContent = 'Show hint';
+                    }
+                    // Hide regenerate button
+                    if (regenerateBtn) {
+                        regenerateBtn.classList.add('hidden');
+                    }
+                }
+            });
+        }
+        
         document.getElementById('quizLanguageToggle').addEventListener('change', (e) => {
             AppState.displayLanguage = e.target.value;
             AppState.saveSettings();
@@ -1178,6 +1206,7 @@ const UI = {
                 // Don't flip if clicking on buttons, expandable headers, or expandable content
                 if (e.target.closest('.quiz-show-hint-text') || 
                     e.target.closest('.quiz-hint-mobile') ||
+                    e.target.closest('.hint-image-mobile') ||
                     e.target.closest('.regenerate-hint-btn-mobile') ||
                     e.target.closest('.quiz-expandable-header') ||
                     e.target.closest('.quiz-expandable-content') ||
@@ -3138,20 +3167,25 @@ const UI = {
             );
             
             if (newHints && newHints.length > 0) {
-                // Generate image for the first hint
-                let hintImageUrl = null;
-                try {
-                    hintImageUrl = await OpenAI.generateMnemonicHintImage(
-                        vocabWord.english,
-                        vocabWord.spanish,
-                        newHints[0]
-                    );
-                } catch (imageError) {
-                    console.error('Error generating hint image:', imageError);
-                    // Continue without image if generation fails
+                // Only generate a new image if one doesn't already exist
+                // Once an image is generated for a word, reuse it going forward
+                let hintImageUrl = vocabWord.hintImage || null;
+                
+                if (!hintImageUrl) {
+                    // No existing image, generate a new one
+                    try {
+                        hintImageUrl = await OpenAI.generateMnemonicHintImage(
+                            vocabWord.english,
+                            vocabWord.spanish,
+                            newHints[0]
+                        );
+                    } catch (imageError) {
+                        console.error('Error generating hint image:', imageError);
+                        // Continue without image if generation fails
+                    }
                 }
                 
-                // Update the word with new hints and image
+                // Update the word with new hints and image (preserve existing image if no new one generated)
                 const updates = { hint: newHints };
                 if (hintImageUrl) {
                     updates.hintImage = hintImageUrl;
@@ -3173,9 +3207,10 @@ const UI = {
                 const hintContainerMobile = document.getElementById('quizHintMobile');
                 if (hintContainerMobile && !hintContainerMobile.classList.contains('hidden')) {
                     let hintsHtml = '';
-                    // Add image if available
-                    if (hintImageUrl) {
-                        hintsHtml += `<img src="${this.escapeHtml(hintImageUrl)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
+                    // Add image if available (use existing image or newly generated one)
+                    const imageToUse = hintImageUrl || vocabWord.hintImage;
+                    if (imageToUse) {
+                        hintsHtml += `<img src="${this.escapeHtml(imageToUse)}" alt="Mnemonic hint illustration" class="hint-image-mobile" />`;
                     }
                     hintsHtml += newHints.map(h => `<p>${this.escapeHtml(h)}</p>`).join('');
                     hintContainerMobile.innerHTML = hintsHtml;
